@@ -27,7 +27,7 @@ describe("formatAddress — formal (default)", () => {
       commune: getCommuneByCode("120101")!,
     };
     expect(formatAddress(address, "km")).toBe(
-      "សង្កាត់ទន្លេបាសាក់ ខណ្ឌចំការមន រាជធានីភ្នំពេញ"
+      "សង្កាត់ទន្លេបាសាក់ ខណ្ឌចំការមន ភ្នំពេញ"
     );
   });
 
@@ -52,7 +52,7 @@ describe("formatAddress — formal (default)", () => {
     const km = formatAddress(address, "km");
     expect(km).toContain("ស្រុក");
     expect(km).toContain("ឃុំ");
-    expect(km).toContain("ខេត្តសៀមរាប");
+    expect(km).toContain("សៀមរាប");
   });
 
   it("includes house and street number in English", () => {
@@ -77,7 +77,7 @@ describe("formatAddress — formal (default)", () => {
       streetNumber: "271",
     };
     expect(formatAddress(address, "km")).toBe(
-      "ផ្ទះលេខ 123 ផ្លូវលេខ 271 សង្កាត់ទន្លេបាសាក់ ខណ្ឌចំការមន រាជធានីភ្នំពេញ"
+      "ផ្ទះលេខ 123 ផ្លូវលេខ 271 សង្កាត់ទន្លេបាសាក់ ខណ្ឌចំការមន ភ្នំពេញ"
     );
   });
 
@@ -90,7 +90,7 @@ describe("formatAddress — formal (default)", () => {
       "Group 5, Siem Reap"
     );
     expect(formatAddress(address, "km")).toBe(
-      "ក្រុមទី 5 ខេត្តសៀមរាប"
+      "ក្រុមទី 5 សៀមរាប"
     );
   });
 });
@@ -128,7 +128,7 @@ describe("formatAddressFromCode", () => {
 
   it("formats formal Khmer from commune code", () => {
     expect(formatAddressFromCode("120101", "km")).toBe(
-      "សង្កាត់ទន្លេបាសាក់ ខណ្ឌចំការមន រាជធានីភ្នំពេញ"
+      "សង្កាត់ទន្លេបាសាក់ ខណ្ឌចំការមន ភ្នំពេញ"
     );
   });
 
@@ -168,7 +168,7 @@ describe("parseAddress", () => {
   });
 
   it("parses Khmer with prefixes", () => {
-    const result = parseAddress("សង្កាត់ទន្លេបាសាក់ ខណ្ឌចំការមន រាជធានីភ្នំពេញ");
+    const result = parseAddress("សង្កាត់ទន្លេបាសាក់ ខណ្ឌចំការមន ភ្នំពេញ");
     expect(result.provinceCode).toBe("12");
     expect(result.districtCode).toBe("1201");
     expect(result.communeCode).toBe("120101");

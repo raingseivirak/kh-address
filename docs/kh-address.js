@@ -145,14 +145,7 @@ function formatAddress(address, options = "en") {
           format
         )
       );
-    if (address.province)
-      parts.push(
-        formatLevelKm(
-          address.province.administrativeUnit.nameKm,
-          address.province.nameKm,
-          format
-        )
-      );
+    if (address.province) parts.push(address.province.nameKm);
     return parts.join(" ");
   }
   if (address.houseNumber) parts.push("#" + address.houseNumber);
@@ -186,8 +179,7 @@ function formatAddressFromCode(code, options = "en") {
   const provinceCode = code.substring(0, 2);
   const province = getProvinceByCode(provinceCode);
   if (province) {
-    const formatted = isKm ? formatLevelKm(province.administrativeUnit.nameKm, province.nameKm, format) : province.nameEn;
-    parts.unshift(formatted);
+    parts.unshift(isKm ? province.nameKm : province.nameEn);
   }
   if (code.length >= 4) {
     const districtCode = code.substring(0, 4);
