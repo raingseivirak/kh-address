@@ -1,5 +1,5 @@
 {
-  "name": "cambodia-address",
+  "name": "kh-address",
   "version": "1.0.0",
   "description": "Practical Cambodian address library with bilingual (English/Khmer) support, autocomplete, cascading lookups, and lazy-loaded village data",
   "type": "module",
