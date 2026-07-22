@@ -268,6 +268,16 @@ interface SearchResult {
 }
 ```
 
+## Data Sources & References
+
+- **Primary data:** [pumi](https://github.com/dwilkie/pumi) — Open source geodata for Cambodia's administrative regions, sourced from the official NCDDS Gazetteer
+- **Official Gazetteer:** [NCDD Admin Database (Oct 2024)](https://data.opendevelopmentmekong.net/en/dataset/cambodia-gazetteer/resource/21966b05-6151-47ab-8cdf-331463193fac) — National Committee for Sub-National Democratic Development Secretariat
+- **Ministry of Land Management:** [MLMUPC Gazetteer of Cambodia (2023)](https://mlmupc.gov.kh/2023/10/26/gazetteer-cambodia/) — Ministry of Land Management, Urban Planning and Construction
+- **Postal codes:** [Cambodia Postal Code](https://www.cambodiapostalcode.com/) — 8-digit format (PPDDCCVV) matching administrative codes
+- **UN GEGN:** [Cambodia country report (2025)](https://unstats.un.org/unsd/ungegn/sessions/4th_session_2025/documents/GEGN.2_2025_73_CRP73_item4a.pdf) — United Nations Group of Experts on Geographical Names
+- **HDX boundaries:** [Cambodia Admin Boundaries](https://data.humdata.org/dataset/cod-ab-khm) — Humanitarian Data Exchange GeoJSON/Shapefiles
+- **Open Development Cambodia:** [Cambodia Gazetteer Dataset](https://opendevelopmentcambodia.net/dataset/?id=cambodia-gazetteer)
+
 ## License
 
 MIT
