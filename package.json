@@ -1,7 +1,7 @@
 {
   "name": "kh-address",
-  "version": "2.0.0",
-  "description": "Practical Cambodian address library with bilingual (English/Khmer) support, autocomplete, postal codes, and lazy-loaded village data",
+  "version": "2.1.0",
+  "description": "Practical Cambodian address library with bilingual (English/Khmer) support, autocomplete UI, postal codes, and lazy-loaded village data",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -25,6 +25,26 @@
       "require": {
         "types": "./dist/villages.d.cts",
         "default": "./dist/villages.cjs"
+      }
+    },
+    "./react": {
+      "import": {
+        "types": "./dist/react.d.ts",
+        "default": "./dist/react.js"
+      },
+      "require": {
+        "types": "./dist/react.d.cts",
+        "default": "./dist/react.cjs"
+      }
+    },
+    "./web-component": {
+      "import": {
+        "types": "./dist/web-component.d.ts",
+        "default": "./dist/web-component.js"
+      },
+      "require": {
+        "types": "./dist/web-component.d.cts",
+        "default": "./dist/web-component.cjs"
       }
     }
   },
@@ -53,12 +73,26 @@
     "cambodian-address",
     "khmer-address",
     "geodata",
-    "typescript"
+    "typescript",
+    "react",
+    "web-component"
   ],
   "author": "Raingsei Virak",
   "license": "MIT",
+  "peerDependencies": {
+    "react": ">=17.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
     "pumi": "^1.0.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vitest": "^3.2.7",
