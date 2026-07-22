@@ -1,0 +1,57 @@
+{
+  "name": "cambodia-address",
+  "version": "1.0.0",
+  "description": "Practical Cambodian address library with bilingual (English/Khmer) support, autocomplete, cascading lookups, and lazy-loaded village data",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build:data": "node scripts/build-data.js && node scripts/split-villages.js",
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "cambodia",
+    "khmer",
+    "address",
+    "provinces",
+    "districts",
+    "communes",
+    "villages",
+    "autocomplete",
+    "cambodian-address",
+    "khmer-address",
+    "geodata",
+    "typescript"
+  ],
+  "author": "Raingsei Virak",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "pumi": "^1.0.3",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7",
+    "yaml": "^2.9.0"
+  }
+}
