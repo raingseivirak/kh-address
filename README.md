@@ -8,6 +8,8 @@ A practical TypeScript library for Cambodian addresses in English and Khmer. Bil
 - **Full hierarchy** — Province → District → Commune → Village
 - **Postal codes** — Official Prakas No.77 (Dec 2025) mapping, handles all 43 admin≠postal mismatches
 - **Autocomplete/Search** — Substring search in both languages with ranked results
+- **React component** — Drop-in `<AddressAutocomplete>` + headless `useAddressAutocomplete` hook
+- **Web Component** — Framework-agnostic `<kh-address-input>` custom element
 - **Lightweight core** — ~116 KB gzipped (provinces + districts + communes + search + postal)
 - **Lazy-loaded villages** — 14,578 villages in a separate import (~367 KB gzipped), only loaded when needed
 - **Address formatting** — Format structured addresses in English or Khmer
@@ -73,12 +75,160 @@ const villages = getVillages('120101');     // Villages in Tonle Basak
 const village = getVillageByCode('12010101'); // Specific village
 ```
 
+## UI Components
+
+### React — `AddressAutocomplete`
+
+```tsx
+import { AddressAutocomplete } from 'kh-address/react';
+
+// Default styled — works out of the box
+<AddressAutocomplete
+  language="km"
+  placeholder="វាយអាសយដ្ឋាន..."
+  onSelect={(address) => {
+    console.log(address.provinceCode);  // "12"
+    console.log(address.communeCode);   // "120101"
+    console.log(address.postalCode);    // "120101"
+    console.log(address.formatted.km);  // "ទន្លេបាសាក់, ចំការមន, ភ្នំពេញ"
+  }}
+/>
+```
+
+**Customization options:**
+
+```tsx
+// Fully unstyled — bring your own CSS (Tailwind, CSS modules, etc.)
+<AddressAutocomplete
+  unstyled
+  classNames={{
+    root: 'relative w-full',
+    input: 'w-full px-3 py-2 border rounded-md',
+    dropdown: 'absolute mt-1 bg-white shadow-lg rounded-md',
+    item: 'px-3 py-2 cursor-pointer',
+    itemActive: 'bg-blue-50',
+    itemName: 'font-medium',
+    itemParent: 'text-sm text-gray-500',
+  }}
+  onSelect={handleSelect}
+/>
+
+// Custom render function for each suggestion
+<AddressAutocomplete
+  renderItem={(result, isActive, language) => (
+    <div className={isActive ? 'bg-blue-50' : ''}>
+      <strong>{result.nameKm}</strong>
+      <small>{result.province?.nameKm}</small>
+    </div>
+  )}
+  onSelect={handleSelect}
+/>
+```
+
+**Props:**
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `language` | `'en' \| 'km'` | Display language (default: `'en'`) |
+| `onSelect` | `(selection: AddressSelection) => void` | Called when user selects an address |
+| `onChange` | `(query: string) => void` | Called on input change |
+| `placeholder` | `string` | Input placeholder |
+| `maxResults` | `number` | Max suggestions (default: `8`) |
+| `minChars` | `number` | Min chars before searching (default: `1`) |
+| `debounceMs` | `number` | Debounce delay in ms (default: `150`) |
+| `filterType` | `'province' \| 'district' \| 'commune'` | Only show this type |
+| `filterProvinceCode` | `string` | Only show results in this province |
+| `unstyled` | `boolean` | Remove all default styles |
+| `classNames` | `AddressAutocompleteClassNames` | CSS class overrides |
+| `renderItem` | `(result, isActive, language) => ReactNode` | Custom item renderer |
+| `noResultsText` | `string` | Custom "no results" message |
+
+### React — `useAddressAutocomplete` hook
+
+For full control over the UI:
+
+```tsx
+import { useAddressAutocomplete } from 'kh-address/react';
+
+function MyAddressInput() {
+  const {
+    inputProps,
+    listProps,
+    getItemProps,
+    results,
+    isOpen,
+    activeIndex,
+    selection,
+    clear,
+  } = useAddressAutocomplete({ language: 'km', maxResults: 5 });
+
+  return (
+    <div>
+      <input {...inputProps} className="my-input" />
+      {isOpen && (
+        <ul {...listProps}>
+          {results.map((r, i) => (
+            <li key={r.code} {...getItemProps(i)}>
+              {r.nameKm}
+            </li>
+          ))}
+        </ul>
+      )}
+      {selection && <p>Selected: {selection.formatted.km}</p>}
+    </div>
+  );
+}
+```
+
+### Web Component — `<kh-address-input>`
+
+Framework-agnostic, works in plain HTML, Vue, Svelte, Angular, etc.
+
+```html
+<script type="module">
+  import { register } from 'kh-address/web-component';
+  register(); // registers <kh-address-input>
+</script>
+
+<kh-address-input language="km" placeholder="វាយអាសយដ្ឋាន..."></kh-address-input>
+
+<script>
+  document.querySelector('kh-address-input')
+    .addEventListener('address-select', (e) => {
+      console.log(e.detail.communeCode);   // "120101"
+      console.log(e.detail.postalCode);    // "120101"
+      console.log(e.detail.formatted.km);  // "ទន្លេបាសាក់, ចំការមន, ភ្នំពេញ"
+    });
+</script>
+```
+
+**Attributes:** `language`, `placeholder`, `max-results`, `value`
+**Event:** `address-select` — fires with structured `AddressSelection` in `event.detail`
+
+### `AddressSelection` (returned by all UI components)
+
+```typescript
+interface AddressSelection {
+  type: 'province' | 'district' | 'commune';
+  code: string;
+  nameEn: string;
+  nameKm: string;
+  provinceCode?: string;
+  districtCode?: string;
+  communeCode?: string;
+  postalCode?: string;
+  formatted: { en: string; km: string };
+}
+```
+
 ## Bundle Size
 
 | Import | Raw | Gzipped | Contents |
 |--------|-----|---------|----------|
-| `kh-address` | 866 KB | **116 KB** | Provinces, districts, communes, search, postal, format |
-| `kh-address/villages` | 3 MB | **367 KB** | 14,578 villages |
+| `kh-address` | 866 KB | **116 KB** | Core data + search + postal + format |
+| `kh-address/react` | 872 KB | **117 KB** | + React component & hook (React external) |
+| `kh-address/web-component` | 870 KB | **117 KB** | + Web Component |
+| `kh-address/villages` | 3 MB | **367 KB** | 14,578 villages (opt-in) |
 
 ## API Reference
 
