@@ -311,22 +311,67 @@
     </div>
   </div>
 
-  <!-- Demo 4: Format & Parse -->
+  <!-- Demo 4: Address Formatting -->
   <div class="card">
-    <h2>Format & Parse <span class="tag">Core</span></h2>
+    <h2>Address Formatting <span class="tag">Formal &amp; Short</span></h2>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px">
+      Enter a commune code and optional house/street. Try code: "120101"
+    </p>
+
     <div class="grid-2">
       <div>
-        <div class="field-label">Format from code</div>
+        <div class="field-label">Commune Code</div>
         <input type="text" id="format-input" placeholder="e.g. 120101"
           style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none;margin-bottom:8px">
-        <div class="field-value empty" id="format-en">—</div>
-        <div class="field-value empty" id="format-km" style="margin-top:4px">—</div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <div class="field-label">House #</div>
+          <input type="text" id="format-house" placeholder="e.g. 123"
+            style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none;margin-bottom:8px">
+        </div>
+        <div>
+          <div class="field-label">Street #</div>
+          <input type="text" id="format-street" placeholder="e.g. 271"
+            style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none;margin-bottom:8px">
+        </div>
+      </div>
+    </div>
+
+    <div class="field-label" style="margin-top:8px">Formal (English)</div>
+    <div class="field-value empty" id="fmt-formal-en">—</div>
+    <div class="field-label" style="margin-top:8px">Formal (Khmer)</div>
+    <div class="field-value empty" id="fmt-formal-km">—</div>
+    <div class="field-label" style="margin-top:8px">Short (English)</div>
+    <div class="field-value empty" id="fmt-short-en">—</div>
+    <div class="field-label" style="margin-top:8px">Short (Khmer)</div>
+    <div class="field-value empty" id="fmt-short-km">—</div>
+  </div>
+
+  <!-- Demo 5: Parse -->
+  <div class="card">
+    <h2>Parse Address <span class="tag">Core</span></h2>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px">
+      Parse a free-text address into structured codes. Try: "Sangkat Tonle Basak, Khan Chamkar Mon, Reach Theani Phnom Penh"
+    </p>
+    <input type="text" id="parse-input" placeholder="Type an address in English or Khmer..."
+      style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none;margin-bottom:8px">
+    <div class="grid-2">
+      <div>
+        <div class="field-label">Province</div>
+        <div class="field-value empty" id="parse-province">—</div>
       </div>
       <div>
-        <div class="field-label">Parse address text</div>
-        <input type="text" id="parse-input" placeholder="e.g. Tonle Basak, Chamkar Mon, Phnom Penh"
-          style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none;margin-bottom:8px">
-        <div class="field-value empty" id="parse-result">—</div>
+        <div class="field-label">District</div>
+        <div class="field-value empty" id="parse-district">—</div>
+      </div>
+      <div>
+        <div class="field-label">Commune</div>
+        <div class="field-value empty" id="parse-commune">—</div>
+      </div>
+      <div>
+        <div class="field-label">Postal Code</div>
+        <div class="field-value empty" id="parse-postal">—</div>
       </div>
     </div>
   </div>
@@ -344,7 +389,7 @@
 </div>
 
 <script type="module">
-  import { searchAddress, getPostalCode, lookupByPostalCode, formatAddressFromCode, parseAddress, getProvinceByCode, getDistrictByCode, getCommuneByCode } from './kh-address.js';
+  import { searchAddress, getPostalCode, lookupByPostalCode, formatAddress, formatAddressFromCode, parseAddress, getProvinceByCode, getDistrictByCode, getCommuneByCode } from './kh-address.js';
   import { register } from './kh-address-web-component.js';
 
   // --- Autocomplete Web Component ---
@@ -437,31 +482,62 @@
     el.classList.toggle('empty', parts.length === 0);
   });
 
-  // --- Format & Parse ---
-  document.getElementById('format-input').addEventListener('input', (e) => {
-    const code = e.target.value.trim();
-    const enEl = document.getElementById('format-en');
-    const kmEl = document.getElementById('format-km');
-    if (!code) { enEl.textContent = '—'; kmEl.textContent = '—'; enEl.classList.add('empty'); kmEl.classList.add('empty'); return; }
-    const en = formatAddressFromCode(code, 'en');
-    const km = formatAddressFromCode(code, 'km');
-    enEl.textContent = en || 'Not found';
-    kmEl.textContent = km || 'Not found';
-    enEl.classList.toggle('empty', !en);
-    kmEl.classList.toggle('empty', !km);
-  });
+  // --- Address Formatting ---
+  function updateFormat() {
+    const code = document.getElementById('format-input').value.trim();
+    const house = document.getElementById('format-house').value.trim();
+    const street = document.getElementById('format-street').value.trim();
 
+    const ids = ['fmt-formal-en', 'fmt-formal-km', 'fmt-short-en', 'fmt-short-km'];
+    const setField = (id, value) => {
+      const el = document.getElementById(id);
+      el.textContent = value || '—';
+      el.classList.toggle('empty', !value);
+    };
+
+    if (!code) { ids.forEach(id => setField(id, null)); return; }
+
+    const province = getProvinceByCode(code.substring(0, 2));
+    const district = code.length >= 4 ? getDistrictByCode(code.substring(0, 4)) : undefined;
+    const commune = code.length >= 6 ? getCommuneByCode(code.substring(0, 6)) : undefined;
+
+    if (!province) { ids.forEach(id => setField(id, 'Invalid code')); return; }
+
+    const addr = { province, district, commune, houseNumber: house || undefined, streetNumber: street || undefined };
+
+    setField('fmt-formal-en', formatAddress(addr, { language: 'en', format: 'formal' }));
+    setField('fmt-formal-km', formatAddress(addr, { language: 'km', format: 'formal' }));
+    setField('fmt-short-en', formatAddress(addr, { language: 'en', format: 'short' }));
+    setField('fmt-short-km', formatAddress(addr, { language: 'km', format: 'short' }));
+  }
+
+  document.getElementById('format-input').addEventListener('input', updateFormat);
+  document.getElementById('format-house').addEventListener('input', updateFormat);
+  document.getElementById('format-street').addEventListener('input', updateFormat);
+
+  // --- Parse Address ---
   document.getElementById('parse-input').addEventListener('input', (e) => {
     const text = e.target.value.trim();
-    const el = document.getElementById('parse-result');
-    if (!text) { el.textContent = '—'; el.classList.add('empty'); return; }
+    const setField = (id, value) => {
+      const el = document.getElementById(id);
+      el.textContent = value || '—';
+      el.classList.toggle('empty', !value);
+    };
+
+    if (!text) {
+      ['parse-province', 'parse-district', 'parse-commune', 'parse-postal'].forEach(id => setField(id, null));
+      return;
+    }
+
     const result = parseAddress(text);
-    const parts = [];
-    if (result.provinceCode) parts.push('P:' + result.provinceCode);
-    if (result.districtCode) parts.push('D:' + result.districtCode);
-    if (result.communeCode) parts.push('C:' + result.communeCode);
-    el.textContent = parts.length > 0 ? parts.join('  ') : 'No match';
-    el.classList.toggle('empty', parts.length === 0);
+    const province = result.provinceCode ? getProvinceByCode(result.provinceCode) : null;
+    const district = result.districtCode ? getDistrictByCode(result.districtCode) : null;
+    const commune = result.communeCode ? getCommuneByCode(result.communeCode) : null;
+
+    setField('parse-province', province ? `${province.nameEn} / ${province.nameKm} (${result.provinceCode})` : null);
+    setField('parse-district', district ? `${district.nameEn} / ${district.nameKm} (${result.districtCode})` : null);
+    setField('parse-commune', commune ? `${commune.nameEn} / ${commune.nameKm} (${result.communeCode})` : null);
+    setField('parse-postal', result.communeCode ? getPostalCode(result.communeCode) : (result.districtCode ? getPostalCode(result.districtCode) : (result.provinceCode ? getPostalCode(result.provinceCode) : null)));
   });
 </script>
 
