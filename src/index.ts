@@ -8,6 +8,7 @@ export type {
   SearchResult,
   StructuredAddress,
   Language,
+  AddressFormat,
 } from "./types.js";
 
 export {
@@ -29,5 +30,6 @@ export {
   formatAddressFromCode,
   parseAddress,
 } from "./format.js";
+export type { FormatOptions } from "./format.js";
 
 export { getPostalCode, lookupByPostalCode } from "./postal.js";

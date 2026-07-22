@@ -1,4 +1,4 @@
-import { L as Language } from './types-D09QxsWl.js';
+import { L as Language } from './types-LZ0vMibT.js';
 
 declare class KhAddressInput extends HTMLElement {
     private input;

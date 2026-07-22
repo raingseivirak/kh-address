@@ -1,5 +1,5 @@
-import { C as Commune, D as District, P as Province, S as SearchResult, a as StructuredAddress, L as Language } from './types-D09QxsWl.cjs';
-export { A as AdministrativeUnit, G as GeoData, V as Village } from './types-D09QxsWl.cjs';
+import { C as Commune, D as District, P as Province, S as SearchResult, L as Language, A as AddressFormat, a as StructuredAddress } from './types-LZ0vMibT.cjs';
+export { b as AdministrativeUnit, G as GeoData, V as Village } from './types-LZ0vMibT.cjs';
 
 declare function getProvinces(): Province[];
 declare function getProvinceByCode(code: string): Province | undefined;
@@ -21,8 +21,12 @@ interface SearchOptions {
 }
 declare function searchAddress(query: string, options?: SearchOptions): SearchResult[];
 
-declare function formatAddress(address: StructuredAddress, language?: Language): string;
-declare function formatAddressFromCode(code: string, language?: Language): string;
+interface FormatOptions {
+    language?: Language;
+    format?: AddressFormat;
+}
+declare function formatAddress(address: StructuredAddress, options?: FormatOptions | Language): string;
+declare function formatAddressFromCode(code: string, options?: FormatOptions | Language): string;
 declare function parseAddress(input: string): {
     provinceCode?: string;
     districtCode?: string;
@@ -36,4 +40,4 @@ declare function lookupByPostalCode(postalCode: string): {
     communeCode?: string;
 };
 
-export { Commune, District, Language, Province, type SearchOptions, SearchResult, StructuredAddress, formatAddress, formatAddressFromCode, getCommuneByCode, getCommunes, getCommunesByProvince, getDistrictByCode, getDistricts, getFullAddress, getPostalCode, getProvinceByCode, getProvinces, lookupByPostalCode, parseAddress, searchAddress };
+export { AddressFormat, Commune, District, type FormatOptions, Language, Province, type SearchOptions, SearchResult, StructuredAddress, formatAddress, formatAddressFromCode, getCommuneByCode, getCommunes, getCommunesByProvince, getDistrictByCode, getDistricts, getFullAddress, getPostalCode, getProvinceByCode, getProvinces, lookupByPostalCode, parseAddress, searchAddress };

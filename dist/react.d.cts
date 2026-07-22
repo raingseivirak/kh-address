@@ -1,5 +1,5 @@
 import React from 'react';
-import { L as Language, S as SearchResult } from './types-D09QxsWl.cjs';
+import { L as Language, S as SearchResult } from './types-LZ0vMibT.cjs';
 
 interface AddressSelection {
     type: "province" | "district" | "commune";

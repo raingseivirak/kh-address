@@ -1,4 +1,4 @@
-import type { Language, StructuredAddress } from "./types.js";
+import type { Language, StructuredAddress, AddressFormat } from "./types.js";
 import {
   getProvinces,
   getProvinceByCode,
@@ -8,45 +8,155 @@ import {
   getCommuneByCode,
 } from "./data.js";
 
+export interface FormatOptions {
+  language?: Language;
+  format?: AddressFormat;
+}
+
+function formatLevelKm(
+  unitKm: string,
+  nameKm: string,
+  format: AddressFormat
+): string {
+  if (format === "short") return nameKm;
+  return unitKm + nameKm;
+}
+
+function formatLevelEn(
+  unitLatin: string,
+  nameEn: string,
+  format: AddressFormat
+): string {
+  if (format === "short") return nameEn;
+  return unitLatin + " " + nameEn;
+}
+
 export function formatAddress(
   address: StructuredAddress,
-  language: Language = "en"
+  options: FormatOptions | Language = "en"
 ): string {
+  const { language, format } = normalizeOptions(options);
+  const isKm = language === "km";
   const parts: string[] = [];
-  const key = language === "km" ? "nameKm" : "nameEn";
 
-  if (address.village) parts.push(address.village[key]);
-  if (address.commune) parts.push(address.commune[key]);
-  if (address.district) parts.push(address.district[key]);
-  if (address.province) parts.push(address.province[key]);
+  if (isKm) {
+    if (address.houseNumber) parts.push("ផ្ទះលេខ " + address.houseNumber);
+    if (address.streetNumber) parts.push("ផ្លូវលេខ " + address.streetNumber);
+    if (address.groupNumber) parts.push("ក្រុមទី " + address.groupNumber);
+    if (address.village)
+      parts.push(formatLevelKm("ភូមិ", address.village.nameKm, format));
+    if (address.commune)
+      parts.push(
+        formatLevelKm(
+          address.commune.administrativeUnit.nameKm,
+          address.commune.nameKm,
+          format
+        )
+      );
+    if (address.district)
+      parts.push(
+        formatLevelKm(
+          address.district.administrativeUnit.nameKm,
+          address.district.nameKm,
+          format
+        )
+      );
+    if (address.province)
+      parts.push(
+        formatLevelKm(
+          address.province.administrativeUnit.nameKm,
+          address.province.nameKm,
+          format
+        )
+      );
+    return parts.join(" ");
+  }
 
+  if (address.houseNumber) parts.push("#" + address.houseNumber);
+  if (address.streetNumber) parts.push("Street " + address.streetNumber);
+  if (address.groupNumber) parts.push("Group " + address.groupNumber);
+  if (address.village)
+    parts.push(formatLevelEn("Phum", address.village.nameEn, format));
+  if (address.commune)
+    parts.push(
+      formatLevelEn(
+        address.commune.administrativeUnit.nameLatin,
+        address.commune.nameEn,
+        format
+      )
+    );
+  if (address.district)
+    parts.push(
+      formatLevelEn(
+        address.district.administrativeUnit.nameLatin,
+        address.district.nameEn,
+        format
+      )
+    );
+  if (address.province)
+    parts.push(
+      formatLevelEn(
+        address.province.administrativeUnit.nameLatin,
+        address.province.nameEn,
+        format
+      )
+    );
   return parts.join(", ");
 }
 
 export function formatAddressFromCode(
   code: string,
-  language: Language = "en"
+  options: FormatOptions | Language = "en"
 ): string {
+  const { language, format } = normalizeOptions(options);
+  const isKm = language === "km";
   const parts: string[] = [];
-  const key = language === "km" ? "nameKm" : "nameEn";
 
   const provinceCode = code.substring(0, 2);
   const province = getProvinceByCode(provinceCode);
-  if (province) parts.unshift(province[key]);
+
+  if (province) {
+    const formatted = isKm
+      ? formatLevelKm(province.administrativeUnit.nameKm, province.nameKm, format)
+      : formatLevelEn(province.administrativeUnit.nameLatin, province.nameEn, format);
+    parts.unshift(formatted);
+  }
 
   if (code.length >= 4) {
     const districtCode = code.substring(0, 4);
     const district = getDistrictByCode(districtCode);
-    if (district) parts.unshift(district[key]);
+    if (district) {
+      const formatted = isKm
+        ? formatLevelKm(district.administrativeUnit.nameKm, district.nameKm, format)
+        : formatLevelEn(district.administrativeUnit.nameLatin, district.nameEn, format);
+      parts.unshift(formatted);
+    }
   }
 
   if (code.length >= 6) {
     const communeCode = code.substring(0, 6);
     const commune = getCommuneByCode(communeCode);
-    if (commune) parts.unshift(commune[key]);
+    if (commune) {
+      const formatted = isKm
+        ? formatLevelKm(commune.administrativeUnit.nameKm, commune.nameKm, format)
+        : formatLevelEn(commune.administrativeUnit.nameLatin, commune.nameEn, format);
+      parts.unshift(formatted);
+    }
   }
 
-  return parts.join(", ");
+  return isKm ? parts.join(" ") : parts.join(", ");
+}
+
+function normalizeOptions(
+  options: FormatOptions | Language
+): { language: Language; format: AddressFormat } {
+  if (typeof options === "string") {
+    return { language: options, format: "formal" };
+  }
+  return {
+    language: options.language || "en",
+    format: options.format || "formal",
+  };
 }
 
 export function parseAddress(
@@ -55,9 +165,21 @@ export function parseAddress(
   const normalized = input.trim();
   if (!normalized) return {};
 
-  const segments = normalized
-    .split(/[,៣]+/)
+  const isKhmer = /[ក-៿]/.test(normalized);
+
+  const rawSegments = isKhmer
+    ? normalized.split(/\s+/)
+    : normalized.split(/,/);
+
+  const segments = rawSegments
     .map((s) => s.trim())
+    .filter(Boolean)
+    .map((s) =>
+      s
+        .replace(/^(ខេត្ត|រាជធានី|ស្រុក|ក្រុង|ខណ្ឌ|ឃុំ|សង្កាត់|ភូមិ)/, "")
+        .replace(/^(Sangkat|Khum|Khan|Srok|Krong|Khaet|Reach Theani|Phum)\s+/i, "")
+        .trim()
+    )
     .filter(Boolean);
 
   const allProvinces = getProvinces();

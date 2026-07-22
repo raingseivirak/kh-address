@@ -1,4 +1,4 @@
-import { V as Village, C as Commune, D as District, P as Province } from './types-D09QxsWl.cjs';
+import { V as Village, C as Commune, D as District, P as Province } from './types-LZ0vMibT.cjs';
 
 declare const villages: Record<string, Village>;
 declare function getVillages(communeCode?: string): Village[];

@@ -70,7 +70,11 @@ interface StructuredAddress {
     district?: District;
     commune?: Commune;
     village?: Village;
+    streetNumber?: string;
+    houseNumber?: string;
+    groupNumber?: string;
 }
 type Language = "en" | "km";
+type AddressFormat = "short" | "formal";
 
-export type { AdministrativeUnit as A, Commune as C, District as D, GeoData as G, Language as L, Province as P, SearchResult as S, Village as V, StructuredAddress as a };
+export type { AddressFormat as A, Commune as C, District as D, GeoData as G, Language as L, Province as P, SearchResult as S, Village as V, StructuredAddress as a, AdministrativeUnit as b };

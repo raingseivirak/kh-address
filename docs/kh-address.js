@@ -111,37 +111,126 @@ function searchAddress(query, options = {}) {
 }
 
 // src/format.ts
-function formatAddress(address, language = "en") {
+function formatLevelKm(unitKm, nameKm, format) {
+  if (format === "short") return nameKm;
+  return unitKm + nameKm;
+}
+function formatLevelEn(unitLatin, nameEn, format) {
+  if (format === "short") return nameEn;
+  return unitLatin + " " + nameEn;
+}
+function formatAddress(address, options = "en") {
+  const { language, format } = normalizeOptions(options);
+  const isKm = language === "km";
   const parts = [];
-  const key = language === "km" ? "nameKm" : "nameEn";
-  if (address.village) parts.push(address.village[key]);
-  if (address.commune) parts.push(address.commune[key]);
-  if (address.district) parts.push(address.district[key]);
-  if (address.province) parts.push(address.province[key]);
+  if (isKm) {
+    if (address.houseNumber) parts.push("\u1795\u17D2\u1791\u17C7\u179B\u17C1\u1781 " + address.houseNumber);
+    if (address.streetNumber) parts.push("\u1795\u17D2\u179B\u17BC\u179C\u179B\u17C1\u1781 " + address.streetNumber);
+    if (address.groupNumber) parts.push("\u1780\u17D2\u179A\u17BB\u1798\u1791\u17B8 " + address.groupNumber);
+    if (address.village)
+      parts.push(formatLevelKm("\u1797\u17BC\u1798\u17B7", address.village.nameKm, format));
+    if (address.commune)
+      parts.push(
+        formatLevelKm(
+          address.commune.administrativeUnit.nameKm,
+          address.commune.nameKm,
+          format
+        )
+      );
+    if (address.district)
+      parts.push(
+        formatLevelKm(
+          address.district.administrativeUnit.nameKm,
+          address.district.nameKm,
+          format
+        )
+      );
+    if (address.province)
+      parts.push(
+        formatLevelKm(
+          address.province.administrativeUnit.nameKm,
+          address.province.nameKm,
+          format
+        )
+      );
+    return parts.join(" ");
+  }
+  if (address.houseNumber) parts.push("#" + address.houseNumber);
+  if (address.streetNumber) parts.push("Street " + address.streetNumber);
+  if (address.groupNumber) parts.push("Group " + address.groupNumber);
+  if (address.village)
+    parts.push(formatLevelEn("Phum", address.village.nameEn, format));
+  if (address.commune)
+    parts.push(
+      formatLevelEn(
+        address.commune.administrativeUnit.nameLatin,
+        address.commune.nameEn,
+        format
+      )
+    );
+  if (address.district)
+    parts.push(
+      formatLevelEn(
+        address.district.administrativeUnit.nameLatin,
+        address.district.nameEn,
+        format
+      )
+    );
+  if (address.province)
+    parts.push(
+      formatLevelEn(
+        address.province.administrativeUnit.nameLatin,
+        address.province.nameEn,
+        format
+      )
+    );
   return parts.join(", ");
 }
-function formatAddressFromCode(code, language = "en") {
+function formatAddressFromCode(code, options = "en") {
+  const { language, format } = normalizeOptions(options);
+  const isKm = language === "km";
   const parts = [];
-  const key = language === "km" ? "nameKm" : "nameEn";
   const provinceCode = code.substring(0, 2);
   const province = getProvinceByCode(provinceCode);
-  if (province) parts.unshift(province[key]);
+  if (province) {
+    const formatted = isKm ? formatLevelKm(province.administrativeUnit.nameKm, province.nameKm, format) : formatLevelEn(province.administrativeUnit.nameLatin, province.nameEn, format);
+    parts.unshift(formatted);
+  }
   if (code.length >= 4) {
     const districtCode = code.substring(0, 4);
     const district = getDistrictByCode(districtCode);
-    if (district) parts.unshift(district[key]);
+    if (district) {
+      const formatted = isKm ? formatLevelKm(district.administrativeUnit.nameKm, district.nameKm, format) : formatLevelEn(district.administrativeUnit.nameLatin, district.nameEn, format);
+      parts.unshift(formatted);
+    }
   }
   if (code.length >= 6) {
     const communeCode = code.substring(0, 6);
     const commune = getCommuneByCode(communeCode);
-    if (commune) parts.unshift(commune[key]);
+    if (commune) {
+      const formatted = isKm ? formatLevelKm(commune.administrativeUnit.nameKm, commune.nameKm, format) : formatLevelEn(commune.administrativeUnit.nameLatin, commune.nameEn, format);
+      parts.unshift(formatted);
+    }
   }
-  return parts.join(", ");
+  return isKm ? parts.join(" ") : parts.join(", ");
+}
+function normalizeOptions(options) {
+  if (typeof options === "string") {
+    return { language: options, format: "formal" };
+  }
+  return {
+    language: options.language || "en",
+    format: options.format || "formal"
+  };
 }
 function parseAddress(input) {
   const normalized = input.trim();
   if (!normalized) return {};
-  const segments = normalized.split(/[,៣]+/).map((s) => s.trim()).filter(Boolean);
+  const isKhmer = /[ក-៿]/.test(normalized);
+  const rawSegments = isKhmer ? normalized.split(/\s+/) : normalized.split(/,/);
+  const segments = rawSegments.map((s) => s.trim()).filter(Boolean).map(
+    (s) => s.replace(/^(ខេត្ត|រាជធានី|ស្រុក|ក្រុង|ខណ្ឌ|ឃុំ|សង្កាត់|ភូមិ)/, "").replace(/^(Sangkat|Khum|Khan|Srok|Krong|Khaet|Reach Theani|Phum)\s+/i, "").trim()
+  ).filter(Boolean);
   const allProvinces = getProvinces();
   const allDistricts = getDistricts();
   const allCommunes = getCommunes();

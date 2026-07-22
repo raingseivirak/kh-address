@@ -65,6 +65,11 @@ export interface StructuredAddress {
   district?: District;
   commune?: Commune;
   village?: Village;
+  streetNumber?: string;
+  houseNumber?: string;
+  groupNumber?: string;
 }
 
 export type Language = "en" | "km";
+
+export type AddressFormat = "short" | "formal";

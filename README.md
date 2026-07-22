@@ -2,6 +2,8 @@
 
 A practical TypeScript library for Cambodian addresses in English and Khmer. Bilingual autocomplete, postal codes (Prakas No.77), cascading lookups, and lightweight lazy-loaded village data.
 
+**[Live Demo](https://raingseivirak.github.io/kh-address/)**
+
 ## Features
 
 - **Bilingual** — English and Khmer names for all 16,000+ locations
