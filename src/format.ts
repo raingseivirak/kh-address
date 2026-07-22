@@ -61,7 +61,14 @@ export function formatAddress(
           format
         )
       );
-    if (address.province) parts.push(address.province.nameKm);
+    if (address.province)
+      parts.push(
+        formatLevelKm(
+          address.province.administrativeUnit.nameKm,
+          address.province.nameKm,
+          format
+        )
+      );
     return parts.join(" ");
   }
 
@@ -102,7 +109,11 @@ export function formatAddressFromCode(
   const province = getProvinceByCode(provinceCode);
 
   if (province) {
-    parts.unshift(isKm ? province.nameKm : province.nameEn);
+    parts.unshift(
+      isKm
+        ? formatLevelKm(province.administrativeUnit.nameKm, province.nameKm, format)
+        : province.nameEn
+    );
   }
 
   if (code.length >= 4) {

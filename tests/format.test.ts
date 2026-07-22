@@ -27,11 +27,11 @@ describe("formatAddress — formal (default)", () => {
       commune: getCommuneByCode("120101")!,
     };
     expect(formatAddress(address, "km")).toBe(
-      "សង្កាត់ទន្លេបាសាក់ ខណ្ឌចំការមន ភ្នំពេញ"
+      "សង្កាត់ទន្លេបាសាក់ ខណ្ឌចំការមន រាជធានីភ្នំពេញ"
     );
   });
 
-  it("formats rural address with Srok/Khum/Khaet", () => {
+  it("formats rural address EN without province prefix", () => {
     const address = {
       province: getProvinceByCode("17")!,
       district: getDistrictByCode("1701")!,
@@ -41,9 +41,10 @@ describe("formatAddress — formal (default)", () => {
     expect(en).toContain("Srok");
     expect(en).toContain("Khum");
     expect(en).toContain("Siem Reap");
+    expect(en).not.toContain("Khaet");
   });
 
-  it("formats rural address in Khmer", () => {
+  it("formats rural address KM with province prefix", () => {
     const address = {
       province: getProvinceByCode("17")!,
       district: getDistrictByCode("1701")!,
@@ -52,7 +53,7 @@ describe("formatAddress — formal (default)", () => {
     const km = formatAddress(address, "km");
     expect(km).toContain("ស្រុក");
     expect(km).toContain("ឃុំ");
-    expect(km).toContain("សៀមរាប");
+    expect(km).toContain("ខេត្តសៀមរាប");
   });
 
   it("includes house and street number in English", () => {
@@ -77,7 +78,7 @@ describe("formatAddress — formal (default)", () => {
       streetNumber: "271",
     };
     expect(formatAddress(address, "km")).toBe(
-      "ផ្ទះលេខ 123 ផ្លូវលេខ 271 សង្កាត់ទន្លេបាសាក់ ខណ្ឌចំការមន ភ្នំពេញ"
+      "ផ្ទះលេខ 123 ផ្លូវលេខ 271 សង្កាត់ទន្លេបាសាក់ ខណ្ឌចំការមន រាជធានីភ្នំពេញ"
     );
   });
 
@@ -90,7 +91,7 @@ describe("formatAddress — formal (default)", () => {
       "Group 5, Siem Reap"
     );
     expect(formatAddress(address, "km")).toBe(
-      "ក្រុមទី 5 សៀមរាប"
+      "ក្រុមទី 5 ខេត្តសៀមរាប"
     );
   });
 });
@@ -128,7 +129,7 @@ describe("formatAddressFromCode", () => {
 
   it("formats formal Khmer from commune code", () => {
     expect(formatAddressFromCode("120101", "km")).toBe(
-      "សង្កាត់ទន្លេបាសាក់ ខណ្ឌចំការមន ភ្នំពេញ"
+      "សង្កាត់ទន្លេបាសាក់ ខណ្ឌចំការមន រាជធានីភ្នំពេញ"
     );
   });
 
