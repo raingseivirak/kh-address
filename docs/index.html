@@ -274,7 +274,58 @@
     <div class="output" id="output-json">// Select an address to see the structured data</div>
   </div>
 
-  <!-- Demo 2: Search API -->
+  <!-- Demo 2: Village Lookup -->
+  <div class="card">
+    <h2>Village Lookup <span class="tag">kh-address/villages</span></h2>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px">
+      Browse the full 4-level hierarchy. Select a province to drill down.
+    </p>
+
+    <div class="grid-2">
+      <div>
+        <div class="field-label">Province</div>
+        <select id="v-province" style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none;background:#fff">
+          <option value="">Select province...</option>
+        </select>
+      </div>
+      <div>
+        <div class="field-label">District</div>
+        <select id="v-district" style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none;background:#fff" disabled>
+          <option value="">Select district...</option>
+        </select>
+      </div>
+      <div>
+        <div class="field-label">Commune</div>
+        <select id="v-commune" style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none;background:#fff" disabled>
+          <option value="">Select commune...</option>
+        </select>
+      </div>
+      <div>
+        <div class="field-label">Village</div>
+        <select id="v-village" style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none;background:#fff" disabled>
+          <option value="">Select village...</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="output-label" style="margin-top:16px">Full address</div>
+    <div class="grid-2">
+      <div class="field-value empty" id="v-addr-en">Select a location above</div>
+      <div class="field-value empty" id="v-addr-km">—</div>
+    </div>
+    <div class="grid-2" style="margin-top:8px">
+      <div>
+        <div class="field-label">Admin Code</div>
+        <div class="field-value empty" id="v-code">—</div>
+      </div>
+      <div>
+        <div class="field-label">Postal Code</div>
+        <div class="field-value empty" id="v-postal">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demo 3: Search API -->
   <div class="card">
     <h2>Search API <span class="tag">Core</span></h2>
     <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px">
@@ -389,7 +440,8 @@
 </div>
 
 <script type="module">
-  import { searchAddress, getPostalCode, lookupByPostalCode, formatAddress, formatAddressFromCode, parseAddress, getProvinceByCode, getDistrictByCode, getCommuneByCode } from './kh-address.js';
+  import { getProvinces, getDistricts, getCommunes, searchAddress, getPostalCode, lookupByPostalCode, formatAddress, formatAddressFromCode, parseAddress, getProvinceByCode, getDistrictByCode, getCommuneByCode } from './kh-address.js';
+  import { getVillages, getVillageByCode } from './kh-address-villages.js';
   import { register } from './kh-address-web-component.js';
 
   // --- Autocomplete Web Component ---
@@ -539,6 +591,77 @@
     setField('parse-commune', commune ? `${commune.nameEn} / ${commune.nameKm} (${result.communeCode})` : null);
     setField('parse-postal', result.communeCode ? getPostalCode(result.communeCode) : (result.districtCode ? getPostalCode(result.districtCode) : (result.provinceCode ? getPostalCode(result.provinceCode) : null)));
   });
+
+  // --- Village Lookup (cascading selects) ---
+  const vProv = document.getElementById('v-province');
+  const vDist = document.getElementById('v-district');
+  const vComm = document.getElementById('v-commune');
+  const vVill = document.getElementById('v-village');
+
+  function populateSelect(el, items, labelFn, valueFn) {
+    const placeholder = el.options[0].textContent;
+    el.innerHTML = '';
+    el.appendChild(new Option(placeholder, ''));
+    items.forEach(item => {
+      const opt = new Option(labelFn(item), valueFn(item));
+      el.appendChild(opt);
+    });
+    el.disabled = items.length === 0;
+    el.value = '';
+  }
+
+  function updateVillageAddress() {
+    const setField = (id, value) => {
+      const el = document.getElementById(id);
+      el.textContent = value || '—';
+      el.classList.toggle('empty', !value);
+    };
+
+    const code = vVill.value || vComm.value || vDist.value || vProv.value;
+    if (!code) {
+      setField('v-addr-en', null); setField('v-addr-km', null);
+      setField('v-code', null); setField('v-postal', null);
+      return;
+    }
+
+    const province = getProvinceByCode(code.substring(0, 2));
+    const district = code.length >= 4 ? getDistrictByCode(code.substring(0, 4)) : undefined;
+    const commune = code.length >= 6 ? getCommuneByCode(code.substring(0, 6)) : undefined;
+    const village = code.length >= 8 ? getVillageByCode(code) : undefined;
+
+    const addr = { province, district, commune, village };
+    setField('v-addr-en', formatAddress(addr, { language: 'en', format: 'formal' }));
+    setField('v-addr-km', formatAddress(addr, { language: 'km', format: 'formal' }));
+    setField('v-code', code);
+    setField('v-postal', getPostalCode(code));
+  }
+
+  // Populate provinces
+  const provinces = getProvinces().sort((a, b) => a.code.localeCompare(b.code));
+  populateSelect(vProv, provinces, p => `${p.nameEn} / ${p.nameKm}`, p => p.code);
+
+  vProv.addEventListener('change', () => {
+    const pc = vProv.value;
+    populateSelect(vDist, pc ? getDistricts(pc) : [], d => `${d.administrativeUnit.nameLatin} ${d.nameEn} / ${d.administrativeUnit.nameKm}${d.nameKm}`, d => d.code);
+    populateSelect(vComm, [], () => '', () => '');
+    populateSelect(vVill, [], () => '', () => '');
+    updateVillageAddress();
+  });
+
+  vDist.addEventListener('change', () => {
+    const dc = vDist.value;
+    populateSelect(vComm, dc ? getCommunes(dc) : [], c => `${c.administrativeUnit.nameLatin} ${c.nameEn} / ${c.administrativeUnit.nameKm}${c.nameKm}`, c => c.code);
+    populateSelect(vVill, [], () => '', () => '');
+    updateVillageAddress();
+  });
+
+  vComm.addEventListener('change', () => {
+    const cc = vComm.value;
+    populateSelect(vVill, cc ? getVillages(cc) : [], v => `${v.nameEn} / ${v.nameKm}`, v => v.code);
+    updateVillageAddress();
+  });
+
+  vVill.addEventListener('change', updateVillageAddress);
 </script>
 
 </body>
