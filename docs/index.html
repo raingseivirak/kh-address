@@ -427,6 +427,55 @@
     </div>
   </div>
 
+  <!-- Demo 7: Geo Lookup -->
+  <div class="card">
+    <h2>Coordinate Lookup <span class="tag">kh-address/geo</span></h2>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px">
+      Enter coordinates or use your current location to find the nearest address.
+    </p>
+
+    <div class="grid-2">
+      <div>
+        <div class="field-label">Latitude</div>
+        <input type="text" id="geo-lat" placeholder="e.g. 11.556"
+          style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none;margin-bottom:8px">
+      </div>
+      <div>
+        <div class="field-label">Longitude</div>
+        <input type="text" id="geo-lng" placeholder="e.g. 104.928"
+          style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none;margin-bottom:8px">
+      </div>
+    </div>
+
+    <button id="geo-locate-btn"
+      style="padding:8px 16px;font-size:13px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);cursor:pointer;margin-bottom:16px">
+      Use my location
+    </button>
+
+    <div class="output-label">Nearest address</div>
+    <div class="grid-2">
+      <div>
+        <div class="field-label">Address (EN)</div>
+        <div class="field-value empty" id="geo-addr-en">—</div>
+      </div>
+      <div>
+        <div class="field-label">Address (KM)</div>
+        <div class="field-value empty" id="geo-addr-km">—</div>
+      </div>
+      <div>
+        <div class="field-label">Distance</div>
+        <div class="field-value empty" id="geo-distance">—</div>
+      </div>
+      <div>
+        <div class="field-label">Postal Code</div>
+        <div class="field-value empty" id="geo-postal">—</div>
+      </div>
+    </div>
+
+    <div class="output-label" style="margin-top:12px">Top 5 nearest communes</div>
+    <div class="output" id="geo-output" style="min-height:100px">// Enter coordinates above</div>
+  </div>
+
   <footer>
     <p>
       <a href="https://github.com/raingseivirak/kh-address">GitHub</a>
@@ -442,6 +491,7 @@
 <script type="module">
   import { getProvinces, getDistricts, getCommunes, searchAddress, getPostalCode, lookupByPostalCode, formatAddress, formatAddressFromCode, parseAddress, getProvinceByCode, getDistrictByCode, getCommuneByCode } from './kh-address.js';
   import { getVillages, getVillageByCode } from './kh-address-villages.js';
+  import { getCoordinates, findNearest, findNearestAddress } from './kh-address-geo.js';
   import { register } from './kh-address-web-component.js';
 
   // --- Autocomplete Web Component ---
@@ -663,6 +713,60 @@
   });
 
   vVill.addEventListener('change', updateVillageAddress);
+
+  // --- Geo Lookup ---
+  function updateGeo() {
+    const lat = parseFloat(document.getElementById('geo-lat').value);
+    const lng = parseFloat(document.getElementById('geo-lng').value);
+    const setField = (id, value) => {
+      const el = document.getElementById(id);
+      el.textContent = value || '—';
+      el.classList.toggle('empty', !value);
+    };
+
+    if (isNaN(lat) || isNaN(lng)) {
+      ['geo-addr-en', 'geo-addr-km', 'geo-distance', 'geo-postal'].forEach(id => setField(id, null));
+      document.getElementById('geo-output').textContent = '// Enter coordinates above';
+      document.getElementById('geo-output').classList.remove('has-data');
+      return;
+    }
+
+    const nearest = findNearestAddress(lat, lng);
+    if (nearest) {
+      const addr = { province: nearest.province, district: nearest.district, commune: nearest.commune };
+      setField('geo-addr-en', formatAddress(addr, { language: 'en', format: 'formal' }));
+      setField('geo-addr-km', formatAddress(addr, { language: 'km', format: 'formal' }));
+      setField('geo-distance', nearest.distanceKm + ' km from commune center');
+      setField('geo-postal', getPostalCode(nearest.commune.code));
+    }
+
+    const top5 = findNearest(lat, lng, { type: 'commune', limit: 5 });
+    const output = top5.map((r, i) => {
+      const prov = getProvinceByCode(r.code.substring(0, 2));
+      return `${i + 1}. ${r.nameEn} / ${r.nameKm}  (${r.distanceKm} km)${prov ? '  — ' + prov.nameEn : ''}`;
+    }).join('\n');
+    const geoOut = document.getElementById('geo-output');
+    geoOut.textContent = output || '// No results';
+    geoOut.classList.toggle('has-data', top5.length > 0);
+  }
+
+  document.getElementById('geo-lat').addEventListener('input', updateGeo);
+  document.getElementById('geo-lng').addEventListener('input', updateGeo);
+
+  document.getElementById('geo-locate-btn').addEventListener('click', () => {
+    const btn = document.getElementById('geo-locate-btn');
+    if (!navigator.geolocation) { btn.textContent = 'Not supported'; return; }
+    btn.textContent = 'Locating...';
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        document.getElementById('geo-lat').value = pos.coords.latitude.toFixed(6);
+        document.getElementById('geo-lng').value = pos.coords.longitude.toFixed(6);
+        btn.textContent = 'Use my location';
+        updateGeo();
+      },
+      () => { btn.textContent = 'Location denied'; setTimeout(() => btn.textContent = 'Use my location', 2000); }
+    );
+  });
 </script>
 
 </body>

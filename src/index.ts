@@ -33,3 +33,4 @@ export {
 export type { FormatOptions } from "./format.js";
 
 export { getPostalCode, lookupByPostalCode } from "./postal.js";
+
