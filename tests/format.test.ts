@@ -16,7 +16,7 @@ describe("formatAddress — formal (default)", () => {
       commune: getCommuneByCode("120101")!,
     };
     expect(formatAddress(address)).toBe(
-      "Sangkat Tonle Basak, Khan Chamkar Mon, Reach Theani Phnom Penh"
+      "Sangkat Tonle Basak, Khan Chamkar Mon, Phnom Penh"
     );
   });
 
@@ -40,7 +40,7 @@ describe("formatAddress — formal (default)", () => {
     const en = formatAddress(address);
     expect(en).toContain("Srok");
     expect(en).toContain("Khum");
-    expect(en).toContain("Khaet Siem Reap");
+    expect(en).toContain("Siem Reap");
   });
 
   it("formats rural address in Khmer", () => {
@@ -64,7 +64,7 @@ describe("formatAddress — formal (default)", () => {
       streetNumber: "271",
     };
     expect(formatAddress(address)).toBe(
-      "#123, Street 271, Sangkat Tonle Basak, Khan Chamkar Mon, Reach Theani Phnom Penh"
+      "#123, Street 271, Sangkat Tonle Basak, Khan Chamkar Mon, Phnom Penh"
     );
   });
 
@@ -87,7 +87,7 @@ describe("formatAddress — formal (default)", () => {
       groupNumber: "5",
     };
     expect(formatAddress(address)).toBe(
-      "Group 5, Khaet Siem Reap"
+      "Group 5, Siem Reap"
     );
     expect(formatAddress(address, "km")).toBe(
       "ក្រុមទី 5 ខេត្តសៀមរាប"
@@ -122,7 +122,7 @@ describe("formatAddress — short", () => {
 describe("formatAddressFromCode", () => {
   it("formats formal from commune code", () => {
     expect(formatAddressFromCode("120101")).toBe(
-      "Sangkat Tonle Basak, Khan Chamkar Mon, Reach Theani Phnom Penh"
+      "Sangkat Tonle Basak, Khan Chamkar Mon, Phnom Penh"
     );
   });
 
@@ -140,13 +140,13 @@ describe("formatAddressFromCode", () => {
 
   it("formats from district code", () => {
     expect(formatAddressFromCode("1201")).toBe(
-      "Khan Chamkar Mon, Reach Theani Phnom Penh"
+      "Khan Chamkar Mon, Phnom Penh"
     );
   });
 
   it("formats from province code", () => {
-    expect(formatAddressFromCode("12")).toBe("Reach Theani Phnom Penh");
-    expect(formatAddressFromCode("17")).toBe("Khaet Siem Reap");
+    expect(formatAddressFromCode("12")).toBe("Phnom Penh");
+    expect(formatAddressFromCode("17")).toBe("Siem Reap");
   });
 });
 
@@ -158,9 +158,9 @@ describe("parseAddress", () => {
     expect(result.communeCode).toBe("120101");
   });
 
-  it("parses formal English with prefixes", () => {
+  it("parses formal English with unit prefixes", () => {
     const result = parseAddress(
-      "Sangkat Tonle Basak, Khan Chamkar Mon, Reach Theani Phnom Penh"
+      "Sangkat Tonle Basak, Khan Chamkar Mon, Phnom Penh"
     );
     expect(result.provinceCode).toBe("12");
     expect(result.districtCode).toBe("1201");

@@ -93,14 +93,7 @@ export function formatAddress(
         format
       )
     );
-  if (address.province)
-    parts.push(
-      formatLevelEn(
-        address.province.administrativeUnit.nameLatin,
-        address.province.nameEn,
-        format
-      )
-    );
+  if (address.province) parts.push(address.province.nameEn);
   return parts.join(", ");
 }
 
@@ -118,7 +111,7 @@ export function formatAddressFromCode(
   if (province) {
     const formatted = isKm
       ? formatLevelKm(province.administrativeUnit.nameKm, province.nameKm, format)
-      : formatLevelEn(province.administrativeUnit.nameLatin, province.nameEn, format);
+      : province.nameEn;
     parts.unshift(formatted);
   }
 

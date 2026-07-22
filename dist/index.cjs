@@ -215,14 +215,7 @@ function formatAddress(address, options = "en") {
         format
       )
     );
-  if (address.province)
-    parts.push(
-      formatLevelEn(
-        address.province.administrativeUnit.nameLatin,
-        address.province.nameEn,
-        format
-      )
-    );
+  if (address.province) parts.push(address.province.nameEn);
   return parts.join(", ");
 }
 function formatAddressFromCode(code, options = "en") {
@@ -232,7 +225,7 @@ function formatAddressFromCode(code, options = "en") {
   const provinceCode = code.substring(0, 2);
   const province = getProvinceByCode(provinceCode);
   if (province) {
-    const formatted = isKm ? formatLevelKm(province.administrativeUnit.nameKm, province.nameKm, format) : formatLevelEn(province.administrativeUnit.nameLatin, province.nameEn, format);
+    const formatted = isKm ? formatLevelKm(province.administrativeUnit.nameKm, province.nameKm, format) : province.nameEn;
     parts.unshift(formatted);
   }
   if (code.length >= 4) {
