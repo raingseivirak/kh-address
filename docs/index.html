@@ -366,13 +366,13 @@
   <div class="card">
     <h2>Address Formatting <span class="tag">Formal &amp; Short</span></h2>
     <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px">
-      Enter a commune code and optional house/street. Try code: "120101"
+      Enter a code (province, district, commune, or village) and optional house/street. Try: "12010101"
     </p>
 
     <div class="grid-2">
       <div>
-        <div class="field-label">Commune Code</div>
-        <input type="text" id="format-input" placeholder="e.g. 120101"
+        <div class="field-label">Address Code</div>
+        <input type="text" id="format-input" placeholder="e.g. 12010101"
           style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none;margin-bottom:8px">
       </div>
       <div class="grid-2">
@@ -552,10 +552,11 @@
     const province = getProvinceByCode(code.substring(0, 2));
     const district = code.length >= 4 ? getDistrictByCode(code.substring(0, 4)) : undefined;
     const commune = code.length >= 6 ? getCommuneByCode(code.substring(0, 6)) : undefined;
+    const village = code.length >= 8 ? getVillageByCode(code) : undefined;
 
     if (!province) { ids.forEach(id => setField(id, 'Invalid code')); return; }
 
-    const addr = { province, district, commune, houseNumber: house || undefined, streetNumber: street || undefined };
+    const addr = { province, district, commune, village, houseNumber: house || undefined, streetNumber: street || undefined };
 
     setField('fmt-formal-en', formatAddress(addr, { language: 'en', format: 'formal' }));
     setField('fmt-formal-km', formatAddress(addr, { language: 'km', format: 'formal' }));
