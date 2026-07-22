@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>kh-address — Cambodian Address Library Demo</title>
+  <style>
+    :root {
+      --bg: #f9fafb;
+      --card-bg: #fff;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --code-bg: #f3f4f6;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    header h1 span { color: var(--accent); }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 500px;
+      margin: 0 auto 16px;
+    }
+
+    .badges {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      background: var(--code-bg);
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card h2 .tag {
+      font-size: 11px;
+      background: var(--accent-light);
+      color: var(--accent);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .lang-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .lang-btn {
+      padding: 6px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--card-bg);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .lang-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .output {
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--code-bg);
+      border-radius: var(--radius);
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      min-height: 80px;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .output.has-data { color: var(--text); }
+
+    .output-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .install-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: #1e293b;
+      color: #e2e8f0;
+      border-radius: var(--radius);
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .install-box .dollar { color: #94a3b8; user-select: none; }
+
+    .install-box .copy-btn {
+      margin-left: auto;
+      padding: 4px 12px;
+      background: #334155;
+      border: none;
+      color: #cbd5e1;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .install-box .copy-btn:hover { background: #475569; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .field-group { margin-bottom: 12px; }
+    .field-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .field-value {
+      padding: 8px 12px;
+      background: var(--code-bg);
+      border-radius: 6px;
+      font-size: 14px;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+    }
+    .field-value.empty { color: #d1d5db; font-style: italic; }
+
+    footer {
+      text-align: center;
+      padding: 32px 0;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1><span>kh-address</span></h1>
+    <p>Practical Cambodian address library with bilingual autocomplete, postal codes, and structured data</p>
+    <div class="badges">
+      <span class="badge">25 Provinces</span>
+      <span class="badge">210 Districts</span>
+      <span class="badge">1,652 Communes</span>
+      <span class="badge">14,578 Villages</span>
+      <span class="badge">TypeScript</span>
+      <span class="badge">~116 KB gzipped</span>
+    </div>
+  </header>
+
+  <div class="install-box">
+    <span class="dollar">$</span>
+    <span>npm install raingseivirak/kh-address</span>
+    <button class="copy-btn" onclick="navigator.clipboard.writeText('npm install raingseivirak/kh-address');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)">Copy</button>
+  </div>
+
+  <!-- Demo 1: Web Component Autocomplete -->
+  <div class="card">
+    <h2>Address Autocomplete <span class="tag">Web Component</span></h2>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px">
+      Type in English or Khmer. Try: "Phnom Penh", "សែនសុខ", "Tonle", "Siem Reap"
+    </p>
+
+    <div class="lang-toggle">
+      <button class="lang-btn active" data-lang="en" onclick="setLang('en')">English</button>
+      <button class="lang-btn" data-lang="km" onclick="setLang('km')">Khmer</button>
+    </div>
+
+    <div id="autocomplete-container"></div>
+
+    <div class="output-label" style="margin-top:20px">Structured result</div>
+    <div class="grid-2">
+      <div class="field-group">
+        <div class="field-label">Province</div>
+        <div class="field-value empty" id="out-province">Select an address above</div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">District</div>
+        <div class="field-value empty" id="out-district">—</div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Commune</div>
+        <div class="field-value empty" id="out-commune">—</div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Postal Code</div>
+        <div class="field-value empty" id="out-postal">—</div>
+      </div>
+    </div>
+
+    <div class="output-label">Raw JSON</div>
+    <div class="output" id="output-json">// Select an address to see the structured data</div>
+  </div>
+
+  <!-- Demo 2: Search API -->
+  <div class="card">
+    <h2>Search API <span class="tag">Core</span></h2>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px">
+      Direct search across provinces, districts, and communes
+    </p>
+    <input
+      type="text"
+      id="search-input"
+      placeholder="Search any location..."
+      style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none"
+    >
+    <div class="output" id="search-output" style="min-height:120px">// Type to search</div>
+  </div>
+
+  <!-- Demo 3: Postal Code Lookup -->
+  <div class="card">
+    <h2>Postal Code Lookup <span class="tag">Prakas No.77</span></h2>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px">
+      Convert between admin codes and official postal codes. Try: "120901" (admin ≠ postal!)
+    </p>
+    <div class="grid-2">
+      <div>
+        <div class="field-label">Admin Code → Postal Code</div>
+        <input type="text" id="admin-input" placeholder="e.g. 120901"
+          style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none;margin-bottom:8px">
+        <div class="field-value empty" id="postal-result">—</div>
+      </div>
+      <div>
+        <div class="field-label">Postal Code → Admin Code</div>
+        <input type="text" id="postal-input" placeholder="e.g. 120913"
+          style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none;margin-bottom:8px">
+        <div class="field-value empty" id="admin-result">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demo 4: Format & Parse -->
+  <div class="card">
+    <h2>Format & Parse <span class="tag">Core</span></h2>
+    <div class="grid-2">
+      <div>
+        <div class="field-label">Format from code</div>
+        <input type="text" id="format-input" placeholder="e.g. 120101"
+          style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none;margin-bottom:8px">
+        <div class="field-value empty" id="format-en">—</div>
+        <div class="field-value empty" id="format-km" style="margin-top:4px">—</div>
+      </div>
+      <div>
+        <div class="field-label">Parse address text</div>
+        <input type="text" id="parse-input" placeholder="e.g. Tonle Basak, Chamkar Mon, Phnom Penh"
+          style="width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:6px;outline:none;margin-bottom:8px">
+        <div class="field-value empty" id="parse-result">—</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>
+      <a href="https://github.com/raingseivirak/kh-address">GitHub</a>
+      &nbsp;&middot;&nbsp;
+      Data source: <a href="https://github.com/dwilkie/pumi">pumi</a> (NCDDS Gazetteer)
+      &nbsp;&middot;&nbsp;
+      Postal codes: Prakas No.77 (Dec 2025)
+    </p>
+    <p style="margin-top:8px">Built by <a href="https://github.com/raingseivirak">raingseivirak</a></p>
+  </footer>
+</div>
+
+<script type="module">
+  import { searchAddress, getPostalCode, lookupByPostalCode, formatAddressFromCode, parseAddress, getProvinceByCode, getDistrictByCode, getCommuneByCode } from '../dist/index.js';
+  import { register } from '../dist/web-component.js';
+
+  // --- Autocomplete Web Component ---
+  register();
+
+  let currentLang = 'en';
+
+  window.setLang = function(lang) {
+    currentLang = lang;
+    document.querySelectorAll('.lang-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.lang === lang);
+    });
+    rebuildAutocomplete();
+  };
+
+  function rebuildAutocomplete() {
+    const container = document.getElementById('autocomplete-container');
+    container.innerHTML = '';
+    const el = document.createElement('kh-address-input');
+    el.setAttribute('language', currentLang);
+    el.setAttribute('placeholder', currentLang === 'km' ? 'វាយអាសយដ្ឋាន...' : 'Type an address...');
+    el.addEventListener('address-select', onAddressSelect);
+    container.appendChild(el);
+  }
+
+  function onAddressSelect(e) {
+    const d = e.detail;
+    const lang = currentLang;
+
+    const setField = (id, value) => {
+      const el = document.getElementById(id);
+      el.textContent = value || '—';
+      el.classList.toggle('empty', !value);
+    };
+
+    const province = d.provinceCode ? getProvinceByCode(d.provinceCode) : null;
+    const district = d.districtCode ? getDistrictByCode(d.districtCode) : null;
+    const commune = d.communeCode ? getCommuneByCode(d.communeCode) : null;
+
+    setField('out-province', province ? (lang === 'km' ? province.nameKm : province.nameEn) + ` (${d.provinceCode})` : null);
+    setField('out-district', district ? (lang === 'km' ? district.nameKm : district.nameEn) + ` (${d.districtCode})` : null);
+    setField('out-commune', commune ? (lang === 'km' ? commune.nameKm : commune.nameEn) + ` (${d.communeCode})` : null);
+    setField('out-postal', d.postalCode || null);
+
+    const jsonEl = document.getElementById('output-json');
+    jsonEl.textContent = JSON.stringify(d, null, 2);
+    jsonEl.classList.add('has-data');
+  }
+
+  rebuildAutocomplete();
+
+  // --- Search API ---
+  const searchInput = document.getElementById('search-input');
+  const searchOutput = document.getElementById('search-output');
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim();
+    if (!q) { searchOutput.textContent = '// Type to search'; searchOutput.classList.remove('has-data'); return; }
+    const results = searchAddress(q, { limit: 6 });
+    if (results.length === 0) { searchOutput.textContent = '// No results'; return; }
+    const formatted = results.map(r => {
+      let line = `[${r.type}] ${r.nameEn} / ${r.nameKm}`;
+      if (r.province) line += `  (${r.province.nameEn})`;
+      return line;
+    }).join('\n');
+    searchOutput.textContent = formatted;
+    searchOutput.classList.add('has-data');
+  });
+
+  // --- Postal Code ---
+  document.getElementById('admin-input').addEventListener('input', (e) => {
+    const code = e.target.value.trim();
+    const el = document.getElementById('postal-result');
+    if (!code) { el.textContent = '—'; el.classList.add('empty'); return; }
+    const postal = getPostalCode(code);
+    el.textContent = postal || 'Not found';
+    el.classList.toggle('empty', !postal);
+  });
+
+  document.getElementById('postal-input').addEventListener('input', (e) => {
+    const code = e.target.value.trim();
+    const el = document.getElementById('admin-result');
+    if (!code) { el.textContent = '—'; el.classList.add('empty'); return; }
+    const result = lookupByPostalCode(code);
+    const parts = [];
+    if (result.provinceCode) parts.push('P:' + result.provinceCode);
+    if (result.districtCode) parts.push('D:' + result.districtCode);
+    if (result.communeCode) parts.push('C:' + result.communeCode);
+    el.textContent = parts.length > 0 ? parts.join('  ') : 'Not found';
+    el.classList.toggle('empty', parts.length === 0);
+  });
+
+  // --- Format & Parse ---
+  document.getElementById('format-input').addEventListener('input', (e) => {
+    const code = e.target.value.trim();
+    const enEl = document.getElementById('format-en');
+    const kmEl = document.getElementById('format-km');
+    if (!code) { enEl.textContent = '—'; kmEl.textContent = '—'; enEl.classList.add('empty'); kmEl.classList.add('empty'); return; }
+    const en = formatAddressFromCode(code, 'en');
+    const km = formatAddressFromCode(code, 'km');
+    enEl.textContent = en || 'Not found';
+    kmEl.textContent = km || 'Not found';
+    enEl.classList.toggle('empty', !en);
+    kmEl.classList.toggle('empty', !km);
+  });
+
+  document.getElementById('parse-input').addEventListener('input', (e) => {
+    const text = e.target.value.trim();
+    const el = document.getElementById('parse-result');
+    if (!text) { el.textContent = '—'; el.classList.add('empty'); return; }
+    const result = parseAddress(text);
+    const parts = [];
+    if (result.provinceCode) parts.push('P:' + result.provinceCode);
+    if (result.districtCode) parts.push('D:' + result.districtCode);
+    if (result.communeCode) parts.push('C:' + result.communeCode);
+    el.textContent = parts.length > 0 ? parts.join('  ') : 'No match';
+    el.classList.toggle('empty', parts.length === 0);
+  });
+</script>
+
+</body>
+</html>
