@@ -1,23 +1,25 @@
-# cambodia-address
+# kh-address
 
-A practical TypeScript library for Cambodian addresses in English and Khmer. Provides cascading lookups, bilingual autocomplete/search, address formatting, and lazy-loaded village data.
+A practical TypeScript library for Cambodian addresses in English and Khmer. Bilingual autocomplete, postal codes (Prakas No.77), cascading lookups, and lightweight lazy-loaded village data.
 
 ## Features
 
 - **Bilingual** — English and Khmer names for all 16,000+ locations
 - **Full hierarchy** — Province → District → Commune → Village
+- **Postal codes** — Official Prakas No.77 (Dec 2025) mapping, handles all 43 admin≠postal mismatches
 - **Autocomplete/Search** — Substring search in both languages with ranked results
-- **Lazy-loaded villages** — Core bundle is ~99 KB gzipped; 14,578 villages load on demand per province
+- **Lightweight core** — ~116 KB gzipped (provinces + districts + communes + search + postal)
+- **Lazy-loaded villages** — 14,578 villages in a separate import (~367 KB gzipped), only loaded when needed
 - **Address formatting** — Format structured addresses in English or Khmer
 - **Address parsing** — Parse free-text address strings into structured components
 - **Geodata** — Latitude/longitude for provinces, districts, and communes
 - **TypeScript-first** — Full type definitions, works with any framework
-- **Zero runtime dependencies**
+- **Zero runtime dependencies** — Works in Node.js, browser, Next.js, and edge
 
 ## Install
 
 ```bash
-npm install cambodia-address
+npm install raingseivirak/kh-address
 ```
 
 ## Quick Start
@@ -27,10 +29,11 @@ import {
   getProvinces,
   getDistricts,
   getCommunes,
-  getVillages,
   searchAddress,
   formatAddressFromCode,
-} from 'cambodia-address';
+  getPostalCode,
+  lookupByPostalCode,
+} from 'kh-address';
 
 // Get all 25 provinces
 const provinces = getProvinces();
@@ -41,35 +44,41 @@ const districts = getDistricts('12');
 // Get communes in Chamkar Mon district
 const communes = getCommunes('1201');
 
-// Get villages in Tonle Basak commune (async - lazy loaded)
-const villages = await getVillages('120101');
-
 // Search in English or Khmer
 const results = searchAddress('សែនសុខ');
-// → [{ type: 'district', nameEn: 'Sen Sok', nameKm: 'សែនសុខ', province: { nameEn: 'Phnom Penh' }, ... }]
+// → [{ type: 'district', nameEn: 'Sen Sok', nameKm: 'សែនសុខ', ... }]
 
-// Format address from code
+// Format address
 formatAddressFromCode('120101', 'en');  // → "Tonle Basak, Chamkar Mon, Phnom Penh"
 formatAddressFromCode('120101', 'km');  // → "ទន្លេបាសាក់, ចំការមន, ភ្នំពេញ"
+
+// Postal codes (official Prakas No.77)
+getPostalCode('12');        // → "120000"
+getPostalCode('1201');      // → "120100"
+getPostalCode('120101');    // → "120101"
+getPostalCode('120901');    // → "120913" (admin ≠ postal!)
+
+lookupByPostalCode('120913');
+// → { provinceCode: '12', districtCode: '1209', communeCode: '120901' }
 ```
 
-## Data
+### Villages (separate import)
 
-| Level | Count | Sync/Async | Bundle Impact |
-|-------|-------|------------|---------------|
-| Provinces | 25 | Sync | Included (~6 KB) |
-| Districts | 210 | Sync | Included (~47 KB) |
-| Communes | 1,652 | Sync | Included (~394 KB) |
-| Villages | 14,578 | **Async** | Lazy per province (2-206 KB each) |
-| **Core bundle** | | | **~99 KB gzipped** |
+Villages are in a separate entry point to keep the core lightweight:
 
-Administrative unit types:
-- Province: Province (ខេត្ត), Capital (រាជធានី)
-- District: District (ស្រុក), Municipality (ក្រុង), Section/Khan (ខណ្ឌ)
-- Commune: Commune (ឃុំ), Quarter/Sangkat (សង្កាត់)
-- Village: Village (ភូមិ)
+```typescript
+import { getVillages, getVillageByCode } from 'kh-address/villages';
 
-Data source: [pumi](https://github.com/dwilkie/pumi) — official NCDDS gazetteer data.
+const villages = getVillages('120101');     // Villages in Tonle Basak
+const village = getVillageByCode('12010101'); // Specific village
+```
+
+## Bundle Size
+
+| Import | Raw | Gzipped | Contents |
+|--------|-----|---------|----------|
+| `kh-address` | 866 KB | **116 KB** | Provinces, districts, communes, search, postal, format |
+| `kh-address/villages` | 3 MB | **367 KB** | 14,578 villages |
 
 ## API Reference
 
@@ -95,14 +104,27 @@ getCommunesByProvince(provinceCode: string): Commune[]
 getCommuneByCode(code: string): Commune | undefined
 ```
 
-### Villages (async — lazy loaded)
+### Villages (from `kh-address/villages`)
 
 ```typescript
-getVillages(communeCode?: string): Promise<Village[]>
-getVillagesByDistrict(districtCode: string): Promise<Village[]>
-getVillagesByProvince(provinceCode: string): Promise<Village[]>
-getVillageByCode(code: string): Promise<Village | undefined>
+getVillages(communeCode?: string): Village[]
+getVillagesByDistrict(districtCode: string): Village[]
+getVillagesByProvince(provinceCode: string): Village[]
+getVillageByCode(code: string): Village | undefined
+getFullAddressWithVillage(villageCode: string): { village?, commune?, district?, province? }
 ```
+
+### Postal Codes
+
+```typescript
+// Admin code → postal code (official Prakas No.77, Dec 2025)
+getPostalCode(adminCode: string): string | undefined
+
+// Postal code → admin codes
+lookupByPostalCode(postalCode: string): { provinceCode?, districtCode?, communeCode? }
+```
+
+**Important:** 43 communes have postal codes that differ from their admin codes (mostly in Phnom Penh due to khan reorganization). This library handles all mismatches correctly using the official Ministry of Posts and Telecommunications data.
 
 ### Search / Autocomplete
 
@@ -110,170 +132,54 @@ getVillageByCode(code: string): Promise<Village | undefined>
 searchAddress(query: string, options?: SearchOptions): SearchResult[]
 ```
 
-Search across provinces, districts, and communes in both English and Khmer. Results are ranked: exact match > prefix match > substring match.
-
+Options:
 ```typescript
 interface SearchOptions {
-  limit?: number;           // Max results (default: 10)
-  type?: 'province' | 'district' | 'commune';  // Filter by level
-  provinceCode?: string;    // Filter within a province
+  limit?: number;            // Max results (default: 10)
+  type?: 'province' | 'district' | 'commune';
+  provinceCode?: string;     // Filter within a province
 }
 ```
 
 ### Formatting
 
 ```typescript
-// Format structured address object
 formatAddress(address: StructuredAddress, language?: 'en' | 'km'): string
-
-// Format from an admin code (province, district, or commune code)
 formatAddressFromCode(code: string, language?: 'en' | 'km'): string
-
-// Format full address including village (async)
-formatFullAddressFromCode(villageCode: string, language?: 'en' | 'km'): Promise<string>
 ```
 
 ### Parsing
 
 ```typescript
-parseAddress(input: string): { provinceCode?: string; districtCode?: string; communeCode?: string }
-```
+parseAddress(input: string): { provinceCode?, districtCode?, communeCode? }
 
-Parse a comma-separated address string (English or Khmer) into administrative codes.
-
-```typescript
 parseAddress('Tonle Basak, Chamkar Mon, Phnom Penh');
 // → { provinceCode: '12', districtCode: '1201', communeCode: '120101' }
-
-parseAddress('ទន្លេបាសាក់, ចំការមន, ភ្នំពេញ');
-// → { provinceCode: '12', districtCode: '1201', communeCode: '120101' }
-```
-
-### Preloading
-
-```typescript
-// Preload village data for a province (cached for subsequent calls)
-preload(provinceCode: string): Promise<void>
-
-// Preload all village data (useful for server-side)
-preloadAll(): Promise<void>
 ```
 
 ### Hierarchy Lookup
 
 ```typescript
-getFullAddress(code: string): { province?: Province; district?: District; commune?: Commune }
+getFullAddress(code: string): { province?, district?, commune? }
 ```
 
-Resolve the full hierarchy from any admin code.
+## Data
 
-### Custom Village Loader
-
-For browser environments or custom setups, provide your own loader:
-
-```typescript
-import { setVillageLoader } from 'cambodia-address';
-
-// Example: load from CDN
-setVillageLoader(async (provinceCode) => {
-  const res = await fetch(`https://cdn.example.com/villages/${provinceCode}.json`);
-  return res.json();
-});
-```
-
-## Usage Examples
-
-### Cascading Address Form
-
-```typescript
-import { getProvinces, getDistricts, getCommunes, getVillages } from 'cambodia-address';
-
-// Step 1: User selects province
-const provinces = getProvinces();
-
-// Step 2: User selects district
-const districts = getDistricts(selectedProvinceCode);
-
-// Step 3: User selects commune
-const communes = getCommunes(selectedDistrictCode);
-
-// Step 4: User selects village (loads on demand)
-const villages = await getVillages(selectedCommuneCode);
-```
-
-### Autocomplete Input
-
-```typescript
-import { searchAddress } from 'cambodia-address';
-
-function onInputChange(query: string) {
-  const results = searchAddress(query, { limit: 5 });
-  // Display results — each has nameEn, nameKm, type, and parent context
-  results.forEach(r => {
-    console.log(`${r.nameEn} (${r.nameKm}) — ${r.type}`);
-    if (r.province) console.log(`  in ${r.province.nameEn}`);
-  });
-}
-```
-
-## Types
-
-```typescript
-interface Province {
-  code: string;
-  nameKm: string;
-  nameEn: string;
-  nameUngegn: string | null;
-  administrativeUnit: AdministrativeUnit;
-  iso3166: string | null;       // e.g. "KH-12"
-  geodata: GeoData | null;      // { lat, lng }
-}
-
-interface District {
-  code: string;
-  provinceCode: string;
-  nameKm: string;
-  nameEn: string;
-  administrativeUnit: AdministrativeUnit;
-  geodata: GeoData | null;
-}
-
-interface Commune {
-  code: string;
-  districtCode: string;
-  provinceCode: string;
-  nameKm: string;
-  nameEn: string;
-  administrativeUnit: AdministrativeUnit;
-  geodata: GeoData | null;
-}
-
-interface Village {
-  code: string;
-  communeCode: string;
-  districtCode: string;
-  provinceCode: string;
-  nameKm: string;
-  nameEn: string;
-}
-
-interface SearchResult {
-  type: 'province' | 'district' | 'commune';
-  code: string;
-  nameEn: string;
-  nameKm: string;
-  score: number;
-  province?: { code: string; nameEn: string; nameKm: string };
-  district?: { code: string; nameEn: string; nameKm: string };
-}
-```
+| Level | Count | Source |
+|-------|-------|--------|
+| Provinces | 25 | NCDDS Gazetteer |
+| Districts | 210 | NCDDS Gazetteer |
+| Communes | 1,652 | NCDDS Gazetteer |
+| Villages | 14,578 | NCDDS Gazetteer |
+| Postal codes | 1,887 | Prakas No.77 (Dec 2025) |
 
 ## Data Sources & References
 
 - **Primary data:** [pumi](https://github.com/dwilkie/pumi) — Open source geodata for Cambodia's administrative regions, sourced from the official NCDDS Gazetteer
+- **Postal codes:** [Open Development Cambodia - Postal Codes](https://data.opendevelopmentcambodia.net/en/dataset/postal-codes) — Official Prakas No.77 (Dec 30, 2025) from Ministry of Posts and Telecommunications
 - **Official Gazetteer:** [NCDD Admin Database (Oct 2024)](https://data.opendevelopmentmekong.net/en/dataset/cambodia-gazetteer/resource/21966b05-6151-47ab-8cdf-331463193fac) — National Committee for Sub-National Democratic Development Secretariat
 - **Ministry of Land Management:** [MLMUPC Gazetteer of Cambodia (2023)](https://mlmupc.gov.kh/2023/10/26/gazetteer-cambodia/) — Ministry of Land Management, Urban Planning and Construction
-- **Postal codes:** [Cambodia Postal Code](https://www.cambodiapostalcode.com/) — 8-digit format (PPDDCCVV) matching administrative codes
+- **Cambodia Postal Code:** [cambodiapostalcode.com](https://www.cambodiapostalcode.com/) — Community postal code reference
 - **UN GEGN:** [Cambodia country report (2025)](https://unstats.un.org/unsd/ungegn/sessions/4th_session_2025/documents/GEGN.2_2025_73_CRP73_item4a.pdf) — United Nations Group of Experts on Geographical Names
 - **HDX boundaries:** [Cambodia Admin Boundaries](https://data.humdata.org/dataset/cod-ab-khm) — Humanitarian Data Exchange GeoJSON/Shapefiles
 - **Open Development Cambodia:** [Cambodia Gazetteer Dataset](https://opendevelopmentcambodia.net/dataset/?id=cambodia-gazetteer)

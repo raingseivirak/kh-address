@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   formatAddress,
   formatAddressFromCode,
-  formatFullAddressFromCode,
   parseAddress,
   getProvinceByCode,
   getDistrictByCode,
@@ -16,8 +15,9 @@ describe("formatAddress", () => {
       district: getDistrictByCode("1201")!,
       commune: getCommuneByCode("120101")!,
     };
-    const result = formatAddress(address, "en");
-    expect(result).toBe("Tonle Basak, Chamkar Mon, Phnom Penh");
+    expect(formatAddress(address, "en")).toBe(
+      "Tonle Basak, Chamkar Mon, Phnom Penh"
+    );
   });
 
   it("formats structured address in Khmer", () => {
@@ -26,16 +26,14 @@ describe("formatAddress", () => {
       district: getDistrictByCode("1201")!,
       commune: getCommuneByCode("120101")!,
     };
-    const result = formatAddress(address, "km");
-    expect(result).toBe("ទន្លេបាសាក់, ចំការមន, ភ្នំពេញ");
+    expect(formatAddress(address, "km")).toBe(
+      "ទន្លេបាសាក់, ចំការមន, ភ្នំពេញ"
+    );
   });
 
   it("handles partial address", () => {
-    const address = {
-      province: getProvinceByCode("12")!,
-    };
-    const result = formatAddress(address, "en");
-    expect(result).toBe("Phnom Penh");
+    const address = { province: getProvinceByCode("12")! };
+    expect(formatAddress(address, "en")).toBe("Phnom Penh");
   });
 });
 
@@ -45,7 +43,9 @@ describe("formatAddressFromCode", () => {
   });
 
   it("formats from district code", () => {
-    expect(formatAddressFromCode("1201", "en")).toBe("Chamkar Mon, Phnom Penh");
+    expect(formatAddressFromCode("1201", "en")).toBe(
+      "Chamkar Mon, Phnom Penh"
+    );
   });
 
   it("formats from commune code", () => {
@@ -59,18 +59,6 @@ describe("formatAddressFromCode", () => {
   });
 });
 
-describe("formatFullAddressFromCode", () => {
-  it("formats full address including village", () => {
-    const result = formatFullAddressFromCode("12010101", "en");
-    expect(result).toBe("Phum 1, Tonle Basak, Chamkar Mon, Phnom Penh");
-  });
-
-  it("formats full address in Khmer", () => {
-    const result = formatFullAddressFromCode("12010101", "km");
-    expect(result).toBe("ភូមិ ១, ទន្លេបាសាក់, ចំការមន, ភ្នំពេញ");
-  });
-});
-
 describe("parseAddress", () => {
   it("parses English address string", () => {
     const result = parseAddress("Tonle Basak, Chamkar Mon, Phnom Penh");
@@ -80,8 +68,7 @@ describe("parseAddress", () => {
   });
 
   it("parses province-only string", () => {
-    const result = parseAddress("Siem Reap");
-    expect(result.provinceCode).toBe("17");
+    expect(parseAddress("Siem Reap").provinceCode).toBe("17");
   });
 
   it("parses Khmer address", () => {
@@ -92,7 +79,6 @@ describe("parseAddress", () => {
   });
 
   it("returns empty for empty input", () => {
-    const result = parseAddress("");
-    expect(result).toEqual({});
+    expect(parseAddress("")).toEqual({});
   });
 });

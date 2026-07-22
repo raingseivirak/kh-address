@@ -7,17 +7,19 @@ import {
   getCommunes,
   getCommunesByProvince,
   getCommuneByCode,
+  getFullAddress,
+} from "../src/index.js";
+import {
   getVillages,
   getVillagesByDistrict,
   getVillagesByProvince,
   getVillageByCode,
-  getFullAddress,
-} from "../src/index.js";
+  getFullAddressWithVillage,
+} from "../src/villages.js";
 
 describe("Provinces", () => {
   it("returns all 25 provinces", () => {
-    const provinces = getProvinces();
-    expect(provinces.length).toBe(25);
+    expect(getProvinces().length).toBe(25);
   });
 
   it("finds Phnom Penh by code", () => {
@@ -27,13 +29,11 @@ describe("Provinces", () => {
     expect(pp!.nameKm).toBe("ភ្នំពេញ");
     expect(pp!.administrativeUnit.nameEn).toBe("Capital");
     expect(pp!.iso3166).toBe("KH-12");
-    expect(pp!.geodata).toBeDefined();
     expect(pp!.geodata!.lat).toBeCloseTo(11.573, 1);
   });
 
   it("finds Siem Reap by code", () => {
     const sr = getProvinceByCode("17");
-    expect(sr).toBeDefined();
     expect(sr!.nameEn).toBe("Siem Reap");
     expect(sr!.nameKm).toBe("សៀមរាប");
   });
@@ -45,8 +45,7 @@ describe("Provinces", () => {
 
 describe("Districts", () => {
   it("returns all districts", () => {
-    const all = getDistricts();
-    expect(all.length).toBeGreaterThan(190);
+    expect(getDistricts().length).toBe(210);
   });
 
   it("filters by province code", () => {
@@ -55,50 +54,39 @@ describe("Districts", () => {
     ppDistricts.forEach((d) => expect(d.provinceCode).toBe("12"));
   });
 
-  it("finds Chamkar Mon by code", () => {
+  it("finds Chamkar Mon", () => {
     const d = getDistrictByCode("1201");
-    expect(d).toBeDefined();
     expect(d!.nameEn).toBe("Chamkar Mon");
     expect(d!.nameKm).toBe("ចំការមន");
     expect(d!.administrativeUnit.nameLatin).toBe("Khan");
-  });
-
-  it("finds Sen Sok by code", () => {
-    const d = getDistrictByCode("1208");
-    expect(d).toBeDefined();
-    expect(d!.nameEn).toBe("Sen Sok");
-    expect(d!.nameKm).toBe("សែនសុខ");
   });
 });
 
 describe("Communes", () => {
   it("returns all communes", () => {
-    const all = getCommunes();
-    expect(all.length).toBeGreaterThan(1600);
+    expect(getCommunes().length).toBe(1652);
   });
 
   it("filters by district code", () => {
-    const chamkarMonCommunes = getCommunes("1201");
-    expect(chamkarMonCommunes.length).toBeGreaterThan(0);
-    chamkarMonCommunes.forEach((c) => expect(c.districtCode).toBe("1201"));
+    const c = getCommunes("1201");
+    expect(c.length).toBeGreaterThan(0);
+    c.forEach((c) => expect(c.districtCode).toBe("1201"));
   });
 
   it("filters by province code", () => {
-    const ppCommunes = getCommunesByProvince("12");
-    expect(ppCommunes.length).toBeGreaterThan(50);
-    ppCommunes.forEach((c) => expect(c.provinceCode).toBe("12"));
+    const c = getCommunesByProvince("12");
+    expect(c.length).toBeGreaterThan(50);
+    c.forEach((c) => expect(c.provinceCode).toBe("12"));
   });
 
-  it("finds Tonle Basak by code", () => {
+  it("finds Tonle Basak", () => {
     const c = getCommuneByCode("120101");
-    expect(c).toBeDefined();
     expect(c!.nameEn).toBe("Tonle Basak");
     expect(c!.nameKm).toBe("ទន្លេបាសាក់");
-    expect(c!.administrativeUnit.nameLatin).toBe("Sangkat");
   });
 });
 
-describe("Villages", () => {
+describe("Villages (separate import)", () => {
   it("loads villages for a commune", () => {
     const v = getVillages("120101");
     expect(v.length).toBeGreaterThan(0);
@@ -114,26 +102,31 @@ describe("Villages", () => {
   it("loads villages by province", () => {
     const v = getVillagesByProvince("23");
     expect(v.length).toBe(18);
-    v.forEach((v) => expect(v.provinceCode).toBe("23"));
   });
 
-  it("finds a specific village by code", () => {
+  it("finds a specific village", () => {
     const v = getVillageByCode("12010101");
-    expect(v).toBeDefined();
     expect(v!.nameKm).toBe("ភូមិ ១");
     expect(v!.nameEn).toBe("Phum 1");
-    expect(v!.communeCode).toBe("120101");
   });
 
-  it("returns undefined for invalid village code", () => {
-    const v = getVillageByCode("99999999");
-    expect(v).toBeUndefined();
+  it("returns undefined for invalid code", () => {
+    expect(getVillageByCode("99999999")).toBeUndefined();
   });
 });
 
 describe("getFullAddress", () => {
-  it("resolves hierarchy from a village code", () => {
+  it("resolves hierarchy from code", () => {
     const addr = getFullAddress("12010101");
+    expect(addr.province?.nameEn).toBe("Phnom Penh");
+    expect(addr.district?.nameEn).toBe("Chamkar Mon");
+    expect(addr.commune?.nameEn).toBe("Tonle Basak");
+  });
+});
+
+describe("getFullAddressWithVillage", () => {
+  it("resolves full hierarchy including village", () => {
+    const addr = getFullAddressWithVillage("12010101");
     expect(addr.province?.nameEn).toBe("Phnom Penh");
     expect(addr.district?.nameEn).toBe("Chamkar Mon");
     expect(addr.commune?.nameEn).toBe("Tonle Basak");

@@ -18,10 +18,6 @@ export {
   getCommunes,
   getCommunesByProvince,
   getCommuneByCode,
-  getVillages,
-  getVillagesByDistrict,
-  getVillagesByProvince,
-  getVillageByCode,
   getFullAddress,
 } from "./data.js";
 
@@ -31,6 +27,7 @@ export type { SearchOptions } from "./search.js";
 export {
   formatAddress,
   formatAddressFromCode,
-  formatFullAddressFromCode,
   parseAddress,
 } from "./format.js";
+
+export { getPostalCode, lookupByPostalCode } from "./postal.js";

@@ -1,7 +1,7 @@
 {
   "name": "kh-address",
-  "version": "1.0.0",
-  "description": "Practical Cambodian address library with bilingual (English/Khmer) support, autocomplete, cascading lookups, and lazy-loaded village data",
+  "version": "2.0.0",
+  "description": "Practical Cambodian address library with bilingual (English/Khmer) support, autocomplete, postal codes, and lazy-loaded village data",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -16,6 +16,16 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./villages": {
+      "import": {
+        "types": "./dist/villages.d.ts",
+        "default": "./dist/villages.js"
+      },
+      "require": {
+        "types": "./dist/villages.d.cts",
+        "default": "./dist/villages.cjs"
+      }
     }
   },
   "files": [
@@ -24,7 +34,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build:data": "node scripts/build-data.js && node scripts/split-villages.js",
+    "build:data": "node scripts/build-data.cjs && node scripts/split-villages.cjs && node scripts/build-postal.cjs",
     "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -38,6 +48,7 @@
     "districts",
     "communes",
     "villages",
+    "postal-code",
     "autocomplete",
     "cambodian-address",
     "khmer-address",

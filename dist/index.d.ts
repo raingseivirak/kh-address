@@ -1,77 +1,5 @@
-interface AdministrativeUnit {
-    nameKm: string;
-    nameEn: string;
-    nameLatin: string;
-}
-interface GeoData {
-    lat: number;
-    lng: number;
-}
-interface Province {
-    code: string;
-    nameKm: string;
-    nameEn: string;
-    nameUngegn: string | null;
-    administrativeUnit: AdministrativeUnit;
-    iso3166: string | null;
-    geodata: GeoData | null;
-}
-interface District {
-    code: string;
-    provinceCode: string;
-    nameKm: string;
-    nameEn: string;
-    nameUngegn: string | null;
-    administrativeUnit: AdministrativeUnit;
-    geodata: GeoData | null;
-}
-interface Commune {
-    code: string;
-    districtCode: string;
-    provinceCode: string;
-    nameKm: string;
-    nameEn: string;
-    nameUngegn: string | null;
-    administrativeUnit: AdministrativeUnit;
-    geodata: GeoData | null;
-}
-interface Village {
-    code: string;
-    communeCode: string;
-    districtCode: string;
-    provinceCode: string;
-    nameKm: string;
-    nameEn: string;
-}
-interface SearchResult {
-    type: "province" | "district" | "commune" | "village";
-    code: string;
-    nameEn: string;
-    nameKm: string;
-    score: number;
-    province?: {
-        code: string;
-        nameEn: string;
-        nameKm: string;
-    };
-    district?: {
-        code: string;
-        nameEn: string;
-        nameKm: string;
-    };
-    commune?: {
-        code: string;
-        nameEn: string;
-        nameKm: string;
-    };
-}
-interface StructuredAddress {
-    province?: Province;
-    district?: District;
-    commune?: Commune;
-    village?: Village;
-}
-type Language = "en" | "km";
+import { C as Commune, D as District, P as Province, S as SearchResult, a as StructuredAddress, L as Language } from './types-D09QxsWl.js';
+export { A as AdministrativeUnit, G as GeoData, V as Village } from './types-D09QxsWl.js';
 
 declare function getProvinces(): Province[];
 declare function getProvinceByCode(code: string): Province | undefined;
@@ -80,12 +8,7 @@ declare function getDistrictByCode(code: string): District | undefined;
 declare function getCommunes(districtCode?: string): Commune[];
 declare function getCommunesByProvince(provinceCode: string): Commune[];
 declare function getCommuneByCode(code: string): Commune | undefined;
-declare function getVillages(communeCode?: string): Village[];
-declare function getVillagesByDistrict(districtCode: string): Village[];
-declare function getVillagesByProvince(provinceCode: string): Village[];
-declare function getVillageByCode(code: string): Village | undefined;
-declare function getFullAddress(villageOrCode: Village | string): {
-    village?: Village;
+declare function getFullAddress(code: string): {
     commune?: Commune;
     district?: District;
     province?: Province;
@@ -100,11 +23,17 @@ declare function searchAddress(query: string, options?: SearchOptions): SearchRe
 
 declare function formatAddress(address: StructuredAddress, language?: Language): string;
 declare function formatAddressFromCode(code: string, language?: Language): string;
-declare function formatFullAddressFromCode(villageCode: string, language?: Language): string;
 declare function parseAddress(input: string): {
     provinceCode?: string;
     districtCode?: string;
     communeCode?: string;
 };
 
-export { type AdministrativeUnit, type Commune, type District, type GeoData, type Language, type Province, type SearchOptions, type SearchResult, type StructuredAddress, type Village, formatAddress, formatAddressFromCode, formatFullAddressFromCode, getCommuneByCode, getCommunes, getCommunesByProvince, getDistrictByCode, getDistricts, getFullAddress, getProvinceByCode, getProvinces, getVillageByCode, getVillages, getVillagesByDistrict, getVillagesByProvince, parseAddress, searchAddress };
+declare function getPostalCode(adminCode: string): string | undefined;
+declare function lookupByPostalCode(postalCode: string): {
+    provinceCode?: string;
+    districtCode?: string;
+    communeCode?: string;
+};
+
+export { Commune, District, Language, Province, type SearchOptions, SearchResult, StructuredAddress, formatAddress, formatAddressFromCode, getCommuneByCode, getCommunes, getCommunesByProvince, getDistrictByCode, getDistricts, getFullAddress, getPostalCode, getProvinceByCode, getProvinces, lookupByPostalCode, parseAddress, searchAddress };

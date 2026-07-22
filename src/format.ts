@@ -6,7 +6,6 @@ import {
   getDistrictByCode,
   getCommunes,
   getCommuneByCode,
-  getVillageByCode,
 } from "./data.js";
 
 export function formatAddress(
@@ -46,31 +45,6 @@ export function formatAddressFromCode(
     const commune = getCommuneByCode(communeCode);
     if (commune) parts.unshift(commune[key]);
   }
-
-  return parts.join(", ");
-}
-
-export function formatFullAddressFromCode(
-  villageCode: string,
-  language: Language = "en"
-): string {
-  const parts: string[] = [];
-  const key = language === "km" ? "nameKm" : "nameEn";
-
-  const village = getVillageByCode(villageCode);
-  if (village) parts.push(village[key]);
-
-  const communeCode = villageCode.substring(0, 6);
-  const commune = getCommuneByCode(communeCode);
-  if (commune) parts.push(commune[key]);
-
-  const districtCode = villageCode.substring(0, 4);
-  const district = getDistrictByCode(districtCode);
-  if (district) parts.push(district[key]);
-
-  const provinceCode = villageCode.substring(0, 2);
-  const province = getProvinceByCode(provinceCode);
-  if (province) parts.push(province[key]);
 
   return parts.join(", ");
 }
