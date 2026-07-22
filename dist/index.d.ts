@@ -73,8 +73,6 @@ interface StructuredAddress {
 }
 type Language = "en" | "km";
 
-type VillageLoader = (provinceCode: string) => Promise<Record<string, Village>>;
-declare function setVillageLoader(loader: VillageLoader): void;
 declare function getProvinces(): Province[];
 declare function getProvinceByCode(code: string): Province | undefined;
 declare function getDistricts(provinceCode?: string): District[];
@@ -82,12 +80,10 @@ declare function getDistrictByCode(code: string): District | undefined;
 declare function getCommunes(districtCode?: string): Commune[];
 declare function getCommunesByProvince(provinceCode: string): Commune[];
 declare function getCommuneByCode(code: string): Commune | undefined;
-declare function getVillages(communeCode?: string): Promise<Village[]>;
-declare function getVillagesByDistrict(districtCode: string): Promise<Village[]>;
-declare function getVillagesByProvince(provinceCode: string): Promise<Village[]>;
-declare function getVillageByCode(code: string): Promise<Village | undefined>;
-declare function preload(provinceCode: string): Promise<void>;
-declare function preloadAll(): Promise<void>;
+declare function getVillages(communeCode?: string): Village[];
+declare function getVillagesByDistrict(districtCode: string): Village[];
+declare function getVillagesByProvince(provinceCode: string): Village[];
+declare function getVillageByCode(code: string): Village | undefined;
 declare function getFullAddress(villageOrCode: Village | string): {
     village?: Village;
     commune?: Commune;
@@ -104,11 +100,11 @@ declare function searchAddress(query: string, options?: SearchOptions): SearchRe
 
 declare function formatAddress(address: StructuredAddress, language?: Language): string;
 declare function formatAddressFromCode(code: string, language?: Language): string;
-declare function formatFullAddressFromCode(villageCode: string, language?: Language): Promise<string>;
+declare function formatFullAddressFromCode(villageCode: string, language?: Language): string;
 declare function parseAddress(input: string): {
     provinceCode?: string;
     districtCode?: string;
     communeCode?: string;
 };
 
-export { type AdministrativeUnit, type Commune, type District, type GeoData, type Language, type Province, type SearchOptions, type SearchResult, type StructuredAddress, type Village, formatAddress, formatAddressFromCode, formatFullAddressFromCode, getCommuneByCode, getCommunes, getCommunesByProvince, getDistrictByCode, getDistricts, getFullAddress, getProvinceByCode, getProvinces, getVillageByCode, getVillages, getVillagesByDistrict, getVillagesByProvince, parseAddress, preload, preloadAll, searchAddress, setVillageLoader };
+export { type AdministrativeUnit, type Commune, type District, type GeoData, type Language, type Province, type SearchOptions, type SearchResult, type StructuredAddress, type Village, formatAddress, formatAddressFromCode, formatFullAddressFromCode, getCommuneByCode, getCommunes, getCommunesByProvince, getDistrictByCode, getDistricts, getFullAddress, getProvinceByCode, getProvinces, getVillageByCode, getVillages, getVillagesByDistrict, getVillagesByProvince, parseAddress, searchAddress };

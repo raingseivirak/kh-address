@@ -60,13 +60,13 @@ describe("formatAddressFromCode", () => {
 });
 
 describe("formatFullAddressFromCode", () => {
-  it("formats full address including village", async () => {
-    const result = await formatFullAddressFromCode("12010101", "en");
+  it("formats full address including village", () => {
+    const result = formatFullAddressFromCode("12010101", "en");
     expect(result).toBe("Phum 1, Tonle Basak, Chamkar Mon, Phnom Penh");
   });
 
-  it("formats full address in Khmer", async () => {
-    const result = await formatFullAddressFromCode("12010101", "km");
+  it("formats full address in Khmer", () => {
+    const result = formatFullAddressFromCode("12010101", "km");
     expect(result).toBe("ភូមិ ១, ទន្លេបាសាក់, ចំការមន, ភ្នំពេញ");
   });
 });

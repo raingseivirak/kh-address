@@ -12,7 +12,6 @@ import {
   getVillagesByProvince,
   getVillageByCode,
   getFullAddress,
-  preload,
 } from "../src/index.js";
 
 describe("Provinces", () => {
@@ -99,50 +98,45 @@ describe("Communes", () => {
   });
 });
 
-describe("Villages (lazy loaded)", () => {
-  it("loads villages for a commune", async () => {
-    const villages = await getVillages("120101");
-    expect(villages.length).toBeGreaterThan(0);
-    villages.forEach((v) => expect(v.communeCode).toBe("120101"));
+describe("Villages", () => {
+  it("loads villages for a commune", () => {
+    const v = getVillages("120101");
+    expect(v.length).toBeGreaterThan(0);
+    v.forEach((v) => expect(v.communeCode).toBe("120101"));
   });
 
-  it("loads villages by district", async () => {
-    const villages = await getVillagesByDistrict("1201");
-    expect(villages.length).toBeGreaterThan(0);
-    villages.forEach((v) => expect(v.districtCode).toBe("1201"));
+  it("loads villages by district", () => {
+    const v = getVillagesByDistrict("1201");
+    expect(v.length).toBeGreaterThan(0);
+    v.forEach((v) => expect(v.districtCode).toBe("1201"));
   });
 
-  it("loads villages by province", async () => {
-    const villages = await getVillagesByProvince("23");
-    expect(villages.length).toBe(18);
-    villages.forEach((v) => expect(v.provinceCode).toBe("23"));
+  it("loads villages by province", () => {
+    const v = getVillagesByProvince("23");
+    expect(v.length).toBe(18);
+    v.forEach((v) => expect(v.provinceCode).toBe("23"));
   });
 
-  it("finds a specific village by code", async () => {
-    const v = await getVillageByCode("12010101");
+  it("finds a specific village by code", () => {
+    const v = getVillageByCode("12010101");
     expect(v).toBeDefined();
     expect(v!.nameKm).toBe("ភូមិ ១");
     expect(v!.nameEn).toBe("Phum 1");
     expect(v!.communeCode).toBe("120101");
   });
 
-  it("returns undefined for invalid village code", async () => {
-    const v = await getVillageByCode("99999999");
+  it("returns undefined for invalid village code", () => {
+    const v = getVillageByCode("99999999");
     expect(v).toBeUndefined();
-  });
-
-  it("preloads villages for a province", async () => {
-    await preload("12");
-    const v = await getVillageByCode("12010101");
-    expect(v).toBeDefined();
   });
 });
 
 describe("getFullAddress", () => {
-  it("resolves hierarchy from a code", () => {
+  it("resolves hierarchy from a village code", () => {
     const addr = getFullAddress("12010101");
     expect(addr.province?.nameEn).toBe("Phnom Penh");
     expect(addr.district?.nameEn).toBe("Chamkar Mon");
     expect(addr.commune?.nameEn).toBe("Tonle Basak");
+    expect(addr.village?.nameEn).toBe("Phum 1");
   });
 });

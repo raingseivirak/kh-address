@@ -23,9 +23,6 @@ export {
   getVillagesByProvince,
   getVillageByCode,
   getFullAddress,
-  preload,
-  preloadAll,
-  setVillageLoader,
 } from "./data.js";
 
 export { searchAddress } from "./search.js";

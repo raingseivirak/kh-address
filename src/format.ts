@@ -50,14 +50,14 @@ export function formatAddressFromCode(
   return parts.join(", ");
 }
 
-export async function formatFullAddressFromCode(
+export function formatFullAddressFromCode(
   villageCode: string,
   language: Language = "en"
-): Promise<string> {
+): string {
   const parts: string[] = [];
   const key = language === "km" ? "nameKm" : "nameEn";
 
-  const village = await getVillageByCode(villageCode);
+  const village = getVillageByCode(villageCode);
   if (village) parts.push(village[key]);
 
   const communeCode = villageCode.substring(0, 6);

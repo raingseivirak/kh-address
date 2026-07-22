@@ -47,7 +47,6 @@
   "author": "Raingsei Virak",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^26.1.1",
     "pumi": "^1.0.3",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
